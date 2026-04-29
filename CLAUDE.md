@@ -2,9 +2,13 @@
 
 This is a template for a new Krak project.
 
-# i18n
+# i18n (required)
 
-All public facing strings should be translated using paraglide.js in the @/src/messages/global folder.
+English and French are required for all public facing strings.
+
+All public facing strings should be translated using paraglide.js and the vite plugin.
+
+Translations are stored in the `src/messages/global` folder.
 
 <!-- intent-skills:start -->
 
