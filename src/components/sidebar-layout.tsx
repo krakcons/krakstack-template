@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { LocaleToggle } from "@/components/locale-toggle";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { UserButton } from "@/components/user-button";
 import {
   Sidebar,
@@ -128,8 +129,9 @@ export function SidebarLayout({
         <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur">
           <SidebarTrigger />
           <div className="ml-auto flex items-center gap-2">
+            <OrganizationSwitcher />
             <LocaleToggle />
-            <UserButton />
+            <UserButton apiKeyPermissions={{ projects: ["read"] }} />
           </div>
         </header>
         <div className="flex flex-col gap-6 px-5 py-6 md:px-8">

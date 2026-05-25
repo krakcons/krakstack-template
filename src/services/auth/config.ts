@@ -1,10 +1,17 @@
 import { betterAuth } from "better-auth";
 import { genericOAuth } from "better-auth/plugins";
 
+const parseCsv = (value: string | undefined) =>
+  value
+    ?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [];
+
 export const auth = betterAuth({
   appName: "Krakstack Site",
+  trustedOrigins: parseCsv(process.env.BETTER_AUTH_TRUSTED_ORIGINS),
   advanced: {
-    cookiePrefix: "krakstack-template",
+    cookiePrefix: "krakstack-site",
   },
   account: {
     encryptOAuthTokens: true,

@@ -1,14 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { CheckSquare, LayoutDashboard } from "lucide-react";
 
-import { TableSearchSchema } from "@/components/data-table";
+import { TableSearchSchemaStandard as TableSearchSchema } from "@/components/data-table";
 import { SidebarLayout, SidebarPageHeader } from "@/components/sidebar-layout";
 import { TaskDialog } from "@/services/task/client/form";
 import { TaskTable } from "@/services/task/client/table";
 import { Button } from "@/components/ui/button";
 import { getCurrentSession } from "@/lib/session";
 import { m } from "@/paraglide/messages";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@/services/auth/client";
 import { AppBrand } from "@/components/app-brand";
 
 export const Route = createFileRoute("/admin")({

@@ -2,19 +2,25 @@ import { Link } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import type { LucideIcon } from "lucide-react";
 
-type AppBrandProps = Omit<ComponentProps<typeof Link>, "to"> & {
+type AppBrandBaseProps = Omit<ComponentProps<typeof Link>, "to"> & {
   label: string;
   subtitle: string;
-  icon: LucideIcon;
   to?: string;
   variant?: "default" | "sidebar";
 };
+
+type AppBrandProps = AppBrandBaseProps &
+  (
+    | { icon: LucideIcon; imageSrc?: string }
+    | { imageSrc: string; icon?: LucideIcon }
+  );
 
 export function AppBrand({
   className,
   label,
   subtitle,
   icon: Icon,
+  imageSrc,
   to = "/",
   variant = "default",
   ...props
@@ -31,7 +37,9 @@ export function AppBrand({
       to={to}
       className={[
         "flex min-w-0 items-center gap-2 text-foreground hover:text-foreground",
-        variant === "sidebar" ? "p-2" : "",
+        variant === "sidebar"
+          ? "p-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+          : "",
         className,
       ]
         .filter(Boolean)
@@ -40,11 +48,15 @@ export function AppBrand({
     >
       <div
         className={[
-          "flex size-8 shrink-0 items-center justify-center rounded-md",
-          iconClassName,
+          "flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-md",
+          imageSrc ? "border bg-background" : iconClassName,
         ].join(" ")}
       >
-        <Icon className="size-4" />
+        {imageSrc ? (
+          <img src={imageSrc} alt={label} className="size-full object-cover" />
+        ) : Icon ? (
+          <Icon className="size-4" />
+        ) : null}
       </div>
       <div
         className={["flex min-w-0 flex-col leading-none", contentClassName]

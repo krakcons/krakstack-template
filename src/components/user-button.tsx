@@ -6,6 +6,8 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import {
+  Check,
+  Copy,
   KeyRound,
   LogOutIcon,
   ShieldCheck,
@@ -13,7 +15,7 @@ import {
   UserCircleIcon,
   UserIcon,
 } from "lucide-react";
-import QRCode from "react-qr-code";
+import { QRCode } from "react-qr-code";
 import {
   type ComponentProps,
   type ReactNode,
@@ -28,6 +30,7 @@ import {
 import { useAppForm } from "@/components/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +38,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +84,7 @@ type UserDropdownProps = {
   signOutRedirect?: string;
   side?: ComponentProps<typeof DropdownMenuContent>["side"];
   renderUnauthenticated?: () => ReactNode;
+  apiKeyPermissions?: Record<string, string[]>;
 };
 
 type SettingsDialog = "account" | "security" | "apiKeys";
@@ -80,6 +93,7 @@ export const UserButton = ({
   signOutRedirect = "/",
   side = "bottom",
   renderUnauthenticated,
+  apiKeyPermissions,
 }: UserDropdownProps) => {
   const navigate = useNavigate();
   const currentSiteHref = useRouterState({
@@ -147,20 +161,6 @@ export const UserButton = ({
     if (result.data?.url) await navigate({ href: result.data.url });
   };
 
-  const dialogTitle =
-    settingsDialog === "account"
-      ? m.user_form_title()
-      : settingsDialog === "security"
-        ? m.user_security_title()
-        : m.user_api_keys_title();
-
-  const dialogDescription =
-    settingsDialog === "account"
-      ? m.user_form_description()
-      : settingsDialog === "security"
-        ? m.user_security_description()
-        : m.user_api_keys_description();
-
   return (
     <>
       <DropdownMenu>
@@ -226,15 +226,19 @@ export const UserButton = ({
         </DropdownMenuContent>
       </DropdownMenu>
       <Dialog
-        open={settingsDialog !== null}
+        open={settingsDialog === "account"}
         onOpenChange={(open) => {
-          if (!open) setSettingsDialog(null);
+          setSettingsDialog((current) =>
+            open ? "account" : current === "account" ? null : current,
+          );
         }}
       >
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{dialogTitle}</DialogTitle>
-            <DialogDescription>{dialogDescription}</DialogDescription>
+            <DialogTitle className="text-2xl">
+              {m.user_form_title()}
+            </DialogTitle>
+            <DialogDescription>{m.user_form_description()}</DialogDescription>
           </DialogHeader>
           <Separator />
           {centralSession.isPending ? (
@@ -255,7 +259,7 @@ export const UserButton = ({
                 {m.user_central_auth_reconnect()}
               </Button>
             </div>
-          ) : settingsDialog === "account" ? (
+          ) : (
             <div className="flex flex-col gap-6">
               <UserForm
                 defaultValues={{
@@ -283,9 +287,49 @@ export const UserButton = ({
               <Separator />
               <PasswordSettings />
             </div>
-          ) : null}
-          {settingsDialog === "security" ? <AccountSecuritySettings /> : null}
-          {settingsDialog === "apiKeys" ? <ApiKeyManager /> : null}
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={settingsDialog === "security"}
+        onOpenChange={(open) => {
+          setSettingsDialog((current) =>
+            open ? "security" : current === "security" ? null : current,
+          );
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              {m.user_security_title()}
+            </DialogTitle>
+            <DialogDescription>
+              {m.user_security_description()}
+            </DialogDescription>
+          </DialogHeader>
+          <Separator />
+          <AccountSecuritySettings />
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={settingsDialog === "apiKeys"}
+        onOpenChange={(open) => {
+          setSettingsDialog((current) =>
+            open ? "apiKeys" : current === "apiKeys" ? null : current,
+          );
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              {m.user_api_keys_title()}
+            </DialogTitle>
+            <DialogDescription>
+              {m.user_api_keys_description()}
+            </DialogDescription>
+          </DialogHeader>
+          <Separator />
+          <ApiKeyManager permissions={apiKeyPermissions ?? {}} />
         </DialogContent>
       </Dialog>
     </>
@@ -1026,31 +1070,32 @@ function VerifyTotpSetup({
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-6 md:grid-cols-[180px_1fr]">
-        <div className="rounded-lg bg-white p-4">
-          <QRCode value={setup.totpURI} className="size-full" />
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col items-center gap-4 rounded-lg border p-4 text-center sm:p-6">
+        <div className="rounded-xl border bg-white p-3">
+          <QRCode
+            value={setup.totpURI}
+            title={m.user_two_factor_scan_title()}
+            className="size-44 max-w-full"
+          />
         </div>
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-medium">
-            {m.user_two_factor_scan_title()}
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            {m.user_two_factor_scan_description()}
-          </p>
-          <div className="grid gap-2 rounded-lg border p-3 font-mono text-sm sm:grid-cols-2">
-            {setup.backupCodes.map((code) => (
-              <span key={code}>{code}</span>
-            ))}
-          </div>
-          <p className="text-muted-foreground text-sm">
-            {m.user_two_factor_backup_codes_warning()}
-          </p>
+        <p className="text-muted-foreground max-w-md text-sm">
+          {m.user_two_factor_scan_description()}
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg border p-4">
+        <div className="bg-muted/40 grid gap-2 rounded-md p-3 font-mono text-sm sm:grid-cols-2">
+          {setup.backupCodes.map((code) => (
+            <span key={code}>{code}</span>
+          ))}
         </div>
+        <p className="text-muted-foreground text-sm">
+          {m.user_two_factor_backup_codes_warning()}
+        </p>
       </div>
       <form.AppForm>
         <form
-          className="flex max-w-md flex-col gap-4"
+          className="flex w-full max-w-sm flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -1125,11 +1170,20 @@ function DisableTotpForm({ onDisabled }: { onDisabled: () => Promise<void> }) {
   );
 }
 
-function ApiKeyManager() {
+function ApiKeyManager({
+  permissions = {},
+}: {
+  permissions?: Record<string, string[]>;
+}) {
   const [keys, setKeys] = useState<ApiKeySummary[]>([]);
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const permissionOptions = getPermissionOptions(permissions);
+  const [selectedPermissions, setSelectedPermissions] = useState<
+    Record<string, boolean>
+  >({});
 
   const loadKeys = async () => {
     setLoading(true);
@@ -1157,12 +1211,23 @@ function ApiKeyManager() {
     onSubmit: async ({ value, formApi }) => {
       formApi.setErrorMap({ onSubmit: undefined });
       setCreatedKey(null);
-      const result = await centralAuthClient.apiKey.create({
-        configId: "user",
-        name: value.name.trim(),
+      setCopiedKey(false);
+      const selectedPermissionObject = getSelectedPermissionObject(
+        permissionOptions,
+        selectedPermissions,
+      );
+      const result = await centralAuthClient.$fetch("/create-api-key", {
+        method: "POST",
+        body: {
+          configId: "user",
+          name: value.name.trim(),
+          permissions: selectedPermissionObject,
+        },
       });
 
-      if (result.error || !result.data) {
+      const created = getCreatedApiKey(result.data);
+
+      if (result.error || !created) {
         formApi.setErrorMap({
           onSubmit: {
             form: result.error?.message ?? m.user_api_key_create_error(),
@@ -1172,11 +1237,24 @@ function ApiKeyManager() {
         return;
       }
 
-      setCreatedKey(result.data.key);
+      setCreatedKey(created.key);
       createForm.reset();
+      setSelectedPermissions({});
       await loadKeys();
     },
   });
+
+  const togglePermission = (id: string, checked: boolean) => {
+    setSelectedPermissions((current) => ({ ...current, [id]: checked }));
+  };
+
+  const copyCreatedKey = async () => {
+    if (!createdKey) return;
+
+    await navigator.clipboard.writeText(createdKey);
+    setCopiedKey(true);
+    window.setTimeout(() => setCopiedKey(false), 2000);
+  };
 
   const deleteKey = async (key: ApiKeySummary) => {
     const result = await centralAuthClient.apiKey.delete({
@@ -1208,6 +1286,32 @@ function ApiKeyManager() {
               <field.TextField label={m.user_api_key_name()} required />
             )}
           </createForm.AppField>
+          {permissionOptions.length > 0 ? (
+            <FieldSet>
+              <FieldLegend>{m.user_api_key_permissions()}</FieldLegend>
+              <FieldDescription>
+                {m.user_api_key_permissions_description()}
+              </FieldDescription>
+              <FieldGroup data-slot="checkbox-group" className="gap-3">
+                {permissionOptions.map((permission) => (
+                  <Field key={permission.id} orientation="horizontal">
+                    <Checkbox
+                      id={permission.id}
+                      checked={selectedPermissions[permission.id] ?? false}
+                      onCheckedChange={(checked: boolean) =>
+                        togglePermission(permission.id, checked)
+                      }
+                    />
+                    <FieldContent>
+                      <FieldLabel htmlFor={permission.id}>
+                        {permission.id}
+                      </FieldLabel>
+                    </FieldContent>
+                  </Field>
+                ))}
+              </FieldGroup>
+            </FieldSet>
+          ) : null}
           <createForm.FormError />
           <createForm.SubmitButton />
         </form>
@@ -1221,9 +1325,20 @@ function ApiKeyManager() {
           <p className="text-muted-foreground text-sm">
             {m.user_api_key_created_description()}
           </p>
-          <code className="bg-muted overflow-x-auto rounded-md p-3 text-sm">
-            {createdKey}
-          </code>
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <code className="bg-muted block max-w-full overflow-x-auto rounded-md p-3 text-sm whitespace-nowrap">
+              {createdKey}
+            </code>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={copyCreatedKey}
+              className="self-start sm:self-auto"
+            >
+              {copiedKey ? <Check /> : <Copy />}
+              {copiedKey ? m.user_api_key_copied() : m.user_api_key_copy()}
+            </Button>
+          </div>
         </div>
       ) : null}
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
@@ -1232,10 +1347,9 @@ function ApiKeyManager() {
       ) : null}
       <Separator />
       <DataTable
-        from="/"
         columns={apiKeyColumns({ onDelete: deleteKey })}
         data={keys}
-        exportFileName="api-keys.csv"
+        exportFileName={m.user_api_keys_export_file_name()}
         features={{ gallery: false }}
       />
     </div>
@@ -1252,11 +1366,8 @@ const apiKeyColumns = ({
     header: m.user_api_key_name(),
     cell: ({ row }) => (
       <div className="min-w-0">
-        <p className="truncate font-medium">{row.original.name}</p>
-        <p className="text-muted-foreground text-sm">
-          {row.original.start
-            ? m.user_api_key_starts_with({ start: row.original.start })
-            : m.user_api_key_hidden()}
+        <p className="truncate font-medium">
+          {row.original.name ?? m.user_api_key_hidden()}
         </p>
       </div>
     ),
@@ -1272,6 +1383,31 @@ const apiKeyColumns = ({
       </Badge>
     ),
   },
+  {
+    accessorKey: "permissions",
+    header: m.user_api_key_permissions(),
+    cell: ({ row }) => {
+      const permissions = formatPermissions(row.original.permissions);
+
+      if (permissions.length === 0) {
+        return (
+          <span className="text-muted-foreground text-sm">
+            {m.user_api_key_no_permissions()}
+          </span>
+        );
+      }
+
+      return (
+        <div className="flex max-w-sm flex-wrap gap-1.5">
+          {permissions.map((permission) => (
+            <Badge key={permission} variant="secondary">
+              {permission}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
   createDataTableActionsColumn<ApiKeySummary>([
     {
       name: m.user_delete(),
@@ -1281,6 +1417,54 @@ const apiKeyColumns = ({
     },
   ]),
 ];
+
+const getPermissionId = (resource: string, action: string) =>
+  `${resource}:${action}`;
+
+const isPermissionRecord = (
+  permissions: unknown,
+): permissions is Record<string, string[]> =>
+  typeof permissions === "object" &&
+  permissions !== null &&
+  Object.values(permissions).every(
+    (actions) =>
+      Array.isArray(actions) &&
+      actions.every((action) => typeof action === "string"),
+  );
+
+const formatPermissions = (permissions: unknown) => {
+  if (!isPermissionRecord(permissions)) return [];
+
+  return Object.entries(permissions).flatMap(([resource, actions]) =>
+    actions.map((action) => `${resource}:${action}`),
+  );
+};
+
+const getPermissionOptions = (permissions: Record<string, string[]>) =>
+  Object.entries(permissions).flatMap(([resource, actions]) =>
+    actions.map((action) => ({
+      id: getPermissionId(resource, action),
+      resource,
+      action,
+    })),
+  );
+
+const getSelectedPermissionObject = (
+  options: ReturnType<typeof getPermissionOptions>,
+  selected: Record<string, boolean>,
+) => {
+  const permissions: Record<string, string[]> = {};
+
+  for (const option of options) {
+    if (!selected[option.id]) continue;
+    permissions[option.resource] = [
+      ...(permissions[option.resource] ?? []),
+      option.action,
+    ];
+  }
+
+  return permissions;
+};
 
 const hasTwoFactorEnabled = (user: unknown) => {
   if (
@@ -1302,4 +1486,17 @@ const isAuthErrorResult = (
     typeof result.error === "object" &&
     result.error !== null
   );
+};
+
+const getCreatedApiKey = (data: unknown) => {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "key" in data &&
+    typeof data.key === "string"
+  ) {
+    return { key: data.key };
+  }
+
+  return null;
 };
