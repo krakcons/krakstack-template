@@ -30,7 +30,7 @@ The backend is an effect application that uses:
 ### Folder Structure
 
 - `public/` — Static assets (favicon, logos, manifest, robots.txt)
-- `scripts/` — Build and utility scripts (e.g. merge-messages for i18n)
+- `scripts/` — Build and utility scripts
 - `src/` — Application source
   - `components/` — React components
     - `ui/` — Shadcn UI primitives (managed by shadcn CLI)

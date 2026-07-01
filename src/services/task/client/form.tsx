@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { useAtomSet } from "@effect/atom-react";
 import { Schema } from "effect";
 
-import { useAppForm } from "@/components/form";
+import { useAppForm } from "@/components/ui/form";
 import {
   Dialog,
   DialogClose,

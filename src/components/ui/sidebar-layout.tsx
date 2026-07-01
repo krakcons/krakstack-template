@@ -2,12 +2,10 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { LocaleToggle } from "@/components/locale-toggle";
-import { OrganizationSwitcher } from "@/components/organization-switcher";
-import { UserButton } from "@/components/user-button";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -19,12 +17,14 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 type NavItem = {
   label: () => string;
   href: string;
   icon: LucideIcon;
+  external?: boolean;
 };
 
 type NavGroup = {
@@ -35,14 +35,20 @@ type NavGroup = {
 export type { NavItem, NavGroup };
 
 type AppSidebarProps = {
+  footer?: React.ReactNode;
   groups: NavGroup[];
   header?: React.ReactNode;
 };
 
-function AppSidebar({ groups, header }: AppSidebarProps) {
+function AppSidebar({ footer, groups, header }: AppSidebarProps) {
+  const { isMobile, setOpenMobile } = useSidebar();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+
+  const closeMobileSidebar = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -53,23 +59,33 @@ function AppSidebar({ groups, header }: AppSidebarProps) {
             <SidebarGroupLabel>{group.label()}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      isActive={pathname === item.href}
-                      render={<Link to={item.href} />}
-                      tooltip={item.label()}
-                    >
-                      <item.icon />
-                      <span>{item.label()}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {group.items.map((item) => {
+                  const render = item.external ? (
+                    <a href={item.href} target="_blank" rel="noreferrer" />
+                  ) : (
+                    <Link to={item.href} />
+                  );
+
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        isActive={!item.external && pathname === item.href}
+                        onClick={closeMobileSidebar}
+                        render={render}
+                        tooltip={item.label()}
+                      >
+                        <item.icon />
+                        <span>{item.label()}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
       </SidebarContent>
+      {footer ? <SidebarFooter>{footer}</SidebarFooter> : null}
       <SidebarRail />
     </Sidebar>
   );
@@ -116,23 +132,27 @@ export function SidebarPageHeader({
 export function SidebarLayout({
   groups,
   children,
+  sidebarFooter,
   sidebarHeader,
+  headerActions,
 }: {
   groups: NavGroup[];
   children?: React.ReactNode;
+  sidebarFooter?: React.ReactNode;
   sidebarHeader?: React.ReactNode;
+  headerActions?: React.ReactNode;
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar groups={groups} header={sidebarHeader} />
+      <AppSidebar
+        footer={sidebarFooter}
+        groups={groups}
+        header={sidebarHeader}
+      />
       <SidebarInset className="min-w-0 overflow-x-hidden">
         <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur">
           <SidebarTrigger />
-          <div className="ml-auto flex items-center gap-2">
-            <OrganizationSwitcher />
-            <LocaleToggle />
-            <UserButton apiKeyPermissions={{ projects: ["read"] }} />
-          </div>
+          <div className="ml-auto flex items-center gap-2">{headerActions}</div>
         </header>
         <div className="flex flex-col gap-6 px-5 py-6 md:px-8">
           {children ?? <Outlet />}

@@ -1,7 +1,7 @@
-import { Context, Effect, Layer, Schema } from "effect";
-import { HttpApiMiddleware } from "effect/unstable/httpapi";
-
-import { Auth } from "@/services/auth";
+import { AuthService } from "@krak-stack/auth/server";
+import { Context, Effect, Layer } from "effect";
+import { HttpServerRequest } from "effect/unstable/http";
+import { HttpApiError, HttpApiMiddleware } from "effect/unstable/httpapi";
 
 export class CurrentUser extends Context.Service<
   CurrentUser,
@@ -12,37 +12,43 @@ export class CurrentUser extends Context.Service<
   }
 >()("site/CurrentUser") {}
 
-export class Unauthorized extends Schema.TaggedErrorClass<Unauthorized>()(
-  "Unauthorized",
-  {
-    message: Schema.String,
-  },
-  { httpApiStatus: 401 },
-) {}
-
 export class AuthMiddleware extends HttpApiMiddleware.Service<
   AuthMiddleware,
   {
-    provides: CurrentUser;
+    provides: CurrentUser | AuthService;
   }
 >()("site/AuthMiddleware", {
-  error: Unauthorized,
+  error: HttpApiError.Unauthorized,
 }) {}
 
 export const AuthMiddlewareLive = Layer.effect(
   AuthMiddleware,
   Effect.gen(function* () {
-    const authService = yield* Auth;
     return (httpEffect) =>
       Effect.gen(function* () {
-        const user = yield* authService
-          .requireUser()
-          .pipe(
-            Effect.mapError(
-              () => new Unauthorized({ message: "Authentication required" }),
-            ),
-          );
-        return yield* Effect.provideService(httpEffect, CurrentUser, user);
+        const request = yield* HttpServerRequest.HttpServerRequest;
+        const auth = yield* AuthService.pipe(
+          Effect.provide(AuthService.layer({ headers: request.headers })),
+          Effect.mapError(() => new HttpApiError.Unauthorized({})),
+        );
+        const session = yield* auth.auth
+          .getSession()
+          .pipe(Effect.mapError(() => new HttpApiError.Unauthorized({})));
+
+        if (!session) {
+          return yield* new HttpApiError.Unauthorized({});
+        }
+
+        const user = {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+        };
+
+        return yield* httpEffect.pipe(
+          Effect.provideService(AuthService, auth),
+          Effect.provideService(CurrentUser, user),
+        );
       });
   }),
-).pipe(Layer.provide(Auth.layer));
+);

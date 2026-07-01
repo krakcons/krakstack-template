@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { paraglideVitePlugin } from "@inlang/paraglide-js";
+import { fileURLToPath, URL } from "node:url";
 
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
@@ -7,7 +8,18 @@ import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 const config = defineConfig({
-  resolve: { tsconfigPaths: true, dedupe: ["zod"] },
+  resolve: {
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    dedupe: ["zod"],
+    tsconfigPaths: true,
+  },
+  optimizeDeps: {
+    exclude: ["@krak-stack/auth"],
+    include: ["react-qr-code"],
+  },
+  ssr: {
+    noExternal: ["@krak-stack/auth"],
+  },
   server: {
     port: Number(process.env.PORT) || 3000,
   },

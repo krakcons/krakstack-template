@@ -1,34 +1,38 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { CheckSquare, LayoutDashboard } from "lucide-react";
+import { CheckSquare } from "lucide-react";
 
-import { TableSearchSchemaStandard as TableSearchSchema } from "@/components/data-table";
-import { SidebarLayout, SidebarPageHeader } from "@/components/sidebar-layout";
+import { OrganizationSwitcher, UserButton } from "@krak-stack/auth";
+
+import { TableSearchSchemaStandard as TableSearchSchema } from "@/components/ui/data-table";
+import {
+  SidebarLayout,
+  SidebarPageHeader,
+} from "@/components/ui/sidebar-layout";
 import { TaskDialog } from "@/services/task/client/form";
 import { TaskTable } from "@/services/task/client/table";
 import { Button } from "@/components/ui/button";
-import { getCurrentSession } from "@/lib/session";
 import { m } from "@/paraglide/messages";
-import { authClient } from "@/services/auth/client";
-import { AppBrand } from "@/components/app-brand";
+import { getLocale } from "@/paraglide/runtime";
+import { authBaseUrl, authClient, authLoginUrl } from "@/services/auth/client";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,
   ssr: false,
   beforeLoad: async () => {
-    const session = await getCurrentSession();
+    const session = await authClient.getSession();
 
-    if (!session) {
-      const result = await authClient.signIn.oauth2({
-        providerId: "krakstack-auth",
-        callbackURL: `${import.meta.env.VITE_SITE_URL}/admin`,
+    if (!session.data) {
+      throw redirect({
+        href: authLoginUrl(
+          `${import.meta.env.VITE_SITE_URL}/admin`,
+          getLocale(),
+        ),
       });
-      if (result.error) {
-        throw result.error;
-      }
-      throw redirect({ href: result.data.url });
     }
 
-    return { session };
+    return { session: session.data };
   },
   component: Admin,
 });
@@ -37,12 +41,11 @@ function Admin() {
   return (
     <SidebarLayout
       sidebarHeader={
-        <AppBrand
-          label={m.admin_brand()}
-          subtitle={m.app_name()}
-          icon={LayoutDashboard}
-          href="/"
-          variant="sidebar"
+        <OrganizationSwitcher
+          authClient={authClient}
+          baseUrl={authBaseUrl}
+          className="w-full group-data-[collapsible=icon]:hidden"
+          side="right"
         />
       }
       groups={[
@@ -53,6 +56,17 @@ function Admin() {
           ],
         },
       ]}
+      headerActions={
+        <>
+          <ThemeSwitcher />
+          <LocaleSwitcher />
+          <UserButton
+            apiKeyPermissions={{ projects: ["read"] }}
+            authClient={authClient}
+            baseUrl={authBaseUrl}
+          />
+        </>
+      }
     >
       <SidebarPageHeader
         badge={{ label: m.admin_badge(), variant: "outline" }}

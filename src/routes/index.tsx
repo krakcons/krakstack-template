@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutDashboard } from "lucide-react";
 
-import { AppBrand } from "@/components/app-brand";
+import { AppBrand } from "@/components/ui/app-brand";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LocaleToggle } from "@/components/locale-toggle";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/")({
@@ -34,7 +34,7 @@ function Home() {
             >
               {m.home_open_admin()}
             </a>
-            <LocaleToggle />
+            <LocaleSwitcher />
           </div>
         </nav>
       </header>

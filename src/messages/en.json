@@ -154,5 +154,9 @@
   "organization_switcher_no_other_organizations": "No other organizations.",
   "organization_switcher_label": "Organization",
   "organization_switcher_manage": "Manage organization",
-  "organization_loading": "Loading..."
+  "organization_loading": "Loading...",
+  "theme_switcher_label": "Switch theme",
+  "theme_light": "Light",
+  "theme_dark": "Dark",
+  "theme_system": "System"
 }

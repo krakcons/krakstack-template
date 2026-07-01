@@ -10,6 +10,11 @@ export default defineConfig({
     },
   },
   test: {
+    server: {
+      deps: {
+        inline: ["@krak-stack/auth"],
+      },
+    },
     env: {
       TEST_DATABASE_URL: process.env.TEST_DATABASE_URL ?? env.TEST_DATABASE_URL,
     },

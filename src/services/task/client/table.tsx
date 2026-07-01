@@ -4,11 +4,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { CheckCircle2, Circle, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useAtomSet } from "@effect/atom-react";
 
-import {
-  createDataTableActionsColumn,
-  DataTable,
-  DataTableColumnHeader,
-} from "@/components/data-table";
+import { DataTable, DataTableColumnHeader } from "@/components/ui/data-table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,43 +89,44 @@ export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
         </span>
       ),
     },
-    createDataTableActionsColumn<Task>([
-      {
-        name: "Edit",
-        icon: <Pencil />,
-        onClick: setEditingTask,
+  ];
+
+  const rowActions = [
+    {
+      name: "Edit",
+      icon: <Pencil />,
+      onClick: setEditingTask,
+    },
+    {
+      name: "Complete",
+      icon: <CheckCircle2 />,
+      visible: (task: Task) => !task.completed,
+      onClick: (task: Task) => {
+        updateTask({
+          params: { id: task.id },
+          payload: { completed: true },
+          reactivityKeys: ["tasks"],
+        });
       },
-      {
-        name: "Complete",
-        icon: <CheckCircle2 />,
-        visible: (task) => !task.completed,
-        onClick: (task) => {
-          updateTask({
-            params: { id: task.id },
-            payload: { completed: true },
-            reactivityKeys: ["tasks"],
-          });
-        },
+    },
+    {
+      name: "Reopen",
+      icon: <RotateCcw />,
+      visible: (task: Task) => task.completed,
+      onClick: (task: Task) => {
+        updateTask({
+          params: { id: task.id },
+          payload: { completed: false },
+          reactivityKeys: ["tasks"],
+        });
       },
-      {
-        name: "Reopen",
-        icon: <RotateCcw />,
-        visible: (task) => task.completed,
-        onClick: (task) => {
-          updateTask({
-            params: { id: task.id },
-            payload: { completed: false },
-            reactivityKeys: ["tasks"],
-          });
-        },
-      },
-      {
-        name: "Delete",
-        icon: <Trash2 />,
-        variant: "destructive",
-        onClick: setDeletingTask,
-      },
-    ]),
+    },
+    {
+      name: "Delete",
+      icon: <Trash2 />,
+      variant: "destructive" as const,
+      onClick: setDeletingTask,
+    },
   ];
 
   const confirmDelete = () => {
@@ -163,6 +160,7 @@ export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
             features={{ gallery: false }}
             from={from}
             onRowClick={setEditingTask}
+            rowActions={rowActions}
           />
 
           {editingTask ? (

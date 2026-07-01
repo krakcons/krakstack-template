@@ -154,5 +154,9 @@
   "organization_switcher_no_other_organizations": "Aucune autre organisation.",
   "organization_switcher_label": "Organisation",
   "organization_switcher_manage": "Gérer l'organisation",
-  "organization_loading": "Chargement..."
+  "organization_loading": "Chargement...",
+  "theme_switcher_label": "Changer de thème",
+  "theme_light": "Clair",
+  "theme_dark": "Sombre",
+  "theme_system": "Système"
 }

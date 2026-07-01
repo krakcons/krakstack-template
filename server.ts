@@ -342,12 +342,14 @@ async function initializeStaticRoutes(
           const etag = ENABLE_ETAG ? computeEtag(bytes) : undefined;
           const asset: InMemoryAsset = {
             raw: bytes,
-            gz,
-            etag,
             type: metadata.type,
             immutable: true,
             size: bytes.byteLength,
           };
+
+          if (gz) asset.gz = gz;
+          if (etag) asset.etag = etag;
+
           routes[route] = createResponseHandler(asset);
 
           loaded.push({ ...metadata, size: bytes.byteLength });
