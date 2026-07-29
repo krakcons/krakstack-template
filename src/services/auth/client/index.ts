@@ -1,9 +1,4 @@
-import { apiKeyClient } from "@better-auth/api-key/client";
-import { createAuthClient } from "better-auth/react";
-import {
-  organizationClient,
-  twoFactorClient,
-} from "better-auth/client/plugins";
+import { createAuthUiClient } from "@krak-stack/auth";
 
 export const authBaseUrl = import.meta.env.VITE_KRAKSTACK_AUTH_URL;
 
@@ -18,17 +13,4 @@ export const authLoginUrl = (
   return url.toString();
 };
 
-export const authClient = createAuthClient({
-  baseURL: authBaseUrl,
-  basePath: "/api/auth",
-  fetchOptions: {
-    credentials: "include",
-  },
-  plugins: [
-    twoFactorClient({
-      twoFactorPage: `${authBaseUrl}/2fa`,
-    }),
-    organizationClient(),
-    apiKeyClient(),
-  ],
-});
+export const authClient = createAuthUiClient(authBaseUrl);
