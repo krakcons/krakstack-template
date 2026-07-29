@@ -1,21 +1,19 @@
-import { AuthService } from "@krak-stack/auth/server";
-import { Context, Effect, Layer } from "effect";
+import {
+  ApiKeyPermissionGrant,
+  AuthService,
+  CurrentActor,
+} from "@krak-stack/auth/server";
+import { parseRoleList } from "@krak-stack/auth/roles";
+import { Effect, Layer, Schema } from "effect";
 import { HttpServerRequest } from "effect/unstable/http";
 import { HttpApiError, HttpApiMiddleware } from "effect/unstable/httpapi";
 
-export class CurrentUser extends Context.Service<
-  CurrentUser,
-  {
-    id: string;
-    name: string;
-    email: string;
-  }
->()("site/CurrentUser") {}
+import { Access } from "@/services/auth/access";
 
 export class AuthMiddleware extends HttpApiMiddleware.Service<
   AuthMiddleware,
   {
-    provides: CurrentUser | AuthService;
+    provides: CurrentActor | AuthService;
   }
 >()("site/AuthMiddleware", {
   error: HttpApiError.Unauthorized,
@@ -31,23 +29,55 @@ export const AuthMiddlewareLive = Layer.effect(
           Effect.provide(AuthService.layer({ headers: request.headers })),
           Effect.mapError(() => new HttpApiError.Unauthorized({})),
         );
-        const session = yield* auth.auth
-          .getSession()
+        const session = yield* auth
+          .requireUser()
           .pipe(Effect.mapError(() => new HttpApiError.Unauthorized({})));
 
-        if (!session) {
+        if (
+          session.authMethod.type === "apiKey" &&
+          (session.authMethod.apiKey.configId !== "user" ||
+            session.authMethod.apiKey.referenceId !== session.user.id)
+        ) {
           return yield* new HttpApiError.Unauthorized({});
         }
 
-        const user = {
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-        };
+        const activeOrganizationId = session.session.activeOrganizationId;
+        const activeMember = activeOrganizationId
+          ? yield* auth.organizations
+              .getActiveMember({
+                params: {
+                  organizationId: activeOrganizationId,
+                  userId: session.user.id,
+                },
+              })
+              .pipe(Effect.mapError(() => new HttpApiError.Unauthorized({})))
+          : null;
+        const roles = parseRoleList(activeMember?.role);
+        const actor =
+          session.authMethod.type === "apiKey"
+            ? Access.actorForApiKey({
+                apiKeyId: session.authMethod.apiKey.id,
+                owner: {
+                  type: "user",
+                  userId: session.user.id,
+                  organizationId: activeOrganizationId ?? null,
+                  roles,
+                },
+                grant: yield* Schema.decodeUnknownEffect(ApiKeyPermissionGrant)(
+                  session.authMethod.apiKey.permissions ?? {},
+                ).pipe(
+                  Effect.mapError(() => new HttpApiError.Unauthorized({})),
+                ),
+              })
+            : Access.actorForUser({
+                userId: session.user.id,
+                organizationId: activeOrganizationId ?? null,
+                roles,
+              });
 
         return yield* httpEffect.pipe(
           Effect.provideService(AuthService, auth),
-          Effect.provideService(CurrentUser, user),
+          Effect.provideService(CurrentActor, actor),
         );
       });
   }),

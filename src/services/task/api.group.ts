@@ -7,6 +7,7 @@ import {
 import { OpenApi } from "effect/unstable/httpapi";
 
 import { AuthMiddleware } from "@/services/auth/middleware";
+import { Forbidden } from "@krak-stack/auth/access";
 
 import {
   CreateTaskSchema,
@@ -25,7 +26,11 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
   .add(
     HttpApiEndpoint.get("listTasks", "/tasks", {
       success: Schema.Array(TaskSchema),
-      error: [HttpApiError.Unauthorized, HttpApiError.InternalServerError],
+      error: [
+        HttpApiError.Unauthorized,
+        Forbidden,
+        HttpApiError.InternalServerError,
+      ],
     }).annotateMerge(
       OpenApi.annotations({
         summary: "List all tasks",
@@ -38,7 +43,11 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
     HttpApiEndpoint.post("createTask", "/tasks", {
       payload: CreateTaskSchema,
       success: TaskSchema,
-      error: [HttpApiError.Unauthorized, HttpApiError.InternalServerError],
+      error: [
+        HttpApiError.Unauthorized,
+        Forbidden,
+        HttpApiError.InternalServerError,
+      ],
     }).annotateMerge(
       OpenApi.annotations({
         summary: "Create a task",
@@ -52,6 +61,7 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
       success: TaskSchema,
       error: [
         HttpApiError.Unauthorized,
+        Forbidden,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
@@ -70,6 +80,7 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
       success: TaskSchema,
       error: [
         HttpApiError.Unauthorized,
+        Forbidden,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
@@ -87,6 +98,7 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
       success: TaskSchema,
       error: [
         HttpApiError.Unauthorized,
+        Forbidden,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
