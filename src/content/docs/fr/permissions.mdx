@@ -1,0 +1,25 @@
+---
+slug: permissions
+path: /docs/permissions
+title: Autorisations
+description: Autorisations des rôles et plafonds des clés API générés à partir du catalogue d'accès utilisé à l'exécution.
+icon: lucide:shield-check
+order: 2
+locale: fr
+section: reference
+type: reference
+---
+
+# Autorisations
+
+Cette référence est générée à partir du même catalogue d'accès que celui utilisé par l'application à l'exécution.
+
+## Les plafonds limitent les attributions
+
+Le plafond d'une clé API est l'ensemble maximal d'actions que ce type de clé peut recevoir. Il n'accorde pas ces actions à lui seul, et un plafond vide signifie que ce type de clé ne peut recevoir aucune action du projet.
+
+## Intersection à l'exécution
+
+Une clé API utilisateur reçoit uniquement les actions présentes dans les trois ensembles : son attribution demandée, le plafond des clés API utilisateur et les autorisations des rôles actifs de son propriétaire.
+
+Les clés API d'organisation et de service reçoivent uniquement les actions présentes à la fois dans leur attribution demandée et leur plafond correspondant. Les contrôles de politique évaluent ensuite cet ensemble effectif à l'exécution.

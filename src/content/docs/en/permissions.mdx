@@ -1,0 +1,25 @@
+---
+slug: permissions
+path: /docs/permissions
+title: Permissions
+description: Role permissions and API key ceilings generated from the application's runtime access catalog.
+icon: lucide:shield-check
+order: 2
+locale: en
+section: reference
+type: reference
+---
+
+# Permissions
+
+This reference is generated from the same access catalog used by the application at runtime.
+
+## Ceilings limit grants
+
+An API key ceiling is the maximum set of actions that type of key may receive. It does not grant those actions by itself, and an empty ceiling means that type of key cannot receive any project action.
+
+## Runtime intersection
+
+A user API key receives only actions present in all three sets: its requested grant, the user API key ceiling, and its owner's active role permissions.
+
+Organization and service API keys receive only actions present in both their requested grant and their corresponding ceiling. Runtime policy checks then evaluate that effective set.

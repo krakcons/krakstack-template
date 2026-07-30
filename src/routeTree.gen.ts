@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slug}'
 import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 
@@ -22,6 +23,11 @@ const AdminRoute = AdminRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsChar123SlugChar125Route = DocsChar123SlugChar125RouteImport.update({
+  id: '/docs/{-$slug}',
+  path: '/docs/{-$slug}',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocsPermissionsRoute = DocsPermissionsRouteImport.update({
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
+  '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
+  '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
+  '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/$' | '/docs/permissions'
+  fullPaths: '/' | '/admin' | '/api/$' | '/docs/permissions' | '/docs/{-$slug}'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/$' | '/docs/permissions'
-  id: '__root__' | '/' | '/admin' | '/api/$' | '/docs/permissions'
+  to: '/' | '/admin' | '/api/$' | '/docs/permissions' | '/docs/{-$slug}'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/api/$'
+    | '/docs/permissions'
+    | '/docs/{-$slug}'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ApiSplatRoute: typeof ApiSplatRoute
   DocsPermissionsRoute: typeof DocsPermissionsRoute
+  DocsChar123SlugChar125Route: typeof DocsChar123SlugChar125Route
 }
 
 declare module '@tanstack/react-router' {
@@ -83,6 +99,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/{-$slug}': {
+      id: '/docs/{-$slug}'
+      path: '/docs/{-$slug}'
+      fullPath: '/docs/{-$slug}'
+      preLoaderRoute: typeof DocsChar123SlugChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/docs/permissions': {
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ApiSplatRoute: ApiSplatRoute,
   DocsPermissionsRoute: DocsPermissionsRoute,
+  DocsChar123SlugChar125Route: DocsChar123SlugChar125Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
