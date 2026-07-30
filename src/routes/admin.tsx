@@ -20,7 +20,7 @@ import { getLocale } from "@/paraglide/runtime";
 import { authBaseUrl, authClient, authLoginUrl } from "@/services/auth/client";
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
-import { Access } from "@/services/auth/access";
+import { Access, AccessLabels } from "@/services/auth/access";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,
@@ -46,6 +46,7 @@ function Admin() {
   return (
     <KrakstackAuthProvider
       access={Access}
+      accessLabels={AccessLabels}
       authClient={authClient}
       baseUrl={authBaseUrl}
       locale={getLocale()}

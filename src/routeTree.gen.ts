@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 
 const AdminRoute = AdminRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsPermissionsRoute = DocsPermissionsRouteImport.update({
+  id: '/docs/permissions',
+  path: '/docs/permissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
+  '/docs/permissions': typeof DocsPermissionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
+  '/docs/permissions': typeof DocsPermissionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/api/$': typeof ApiSplatRoute
+  '/docs/permissions': typeof DocsPermissionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/$'
+  fullPaths: '/' | '/admin' | '/api/$' | '/docs/permissions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/$'
-  id: '__root__' | '/' | '/admin' | '/api/$'
+  to: '/' | '/admin' | '/api/$' | '/docs/permissions'
+  id: '__root__' | '/' | '/admin' | '/api/$' | '/docs/permissions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  DocsPermissionsRoute: typeof DocsPermissionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/permissions': {
+      id: '/docs/permissions'
+      path: '/docs/permissions'
+      fullPath: '/docs/permissions'
+      preLoaderRoute: typeof DocsPermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   ApiSplatRoute: ApiSplatRoute,
+  DocsPermissionsRoute: DocsPermissionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

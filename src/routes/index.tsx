@@ -60,6 +60,13 @@ function Home() {
               <Button
                 size="lg"
                 variant="outline"
+                render={<a href="/docs/permissions" />}
+              >
+                {m.home_view_permissions()}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
                 render={<a href="/api/docs" />}
               >
                 {m.home_view_api_docs()}
