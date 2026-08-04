@@ -16,7 +16,6 @@ import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slu
 import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as AuthVerifyEmailRouteImport } from './routes/_auth/verify-email'
-import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
@@ -57,11 +56,6 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthSignUpRoute = AuthSignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthSignInRoute = AuthSignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
@@ -95,7 +89,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthAuthRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
-  '/sign-up': typeof AuthSignUpRoute
   '/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthAuthRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
-  '/sign-up': typeof AuthSignUpRoute
   '/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/_auth/auth': typeof AuthAuthRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
-  '/_auth/sign-up': typeof AuthSignUpRoute
   '/_auth/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
@@ -141,7 +132,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/sign-in'
-    | '/sign-up'
     | '/verify-email'
     | '/api/$'
     | '/docs/permissions'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/sign-in'
-    | '/sign-up'
     | '/verify-email'
     | '/api/$'
     | '/docs/permissions'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/_auth/auth'
     | '/_auth/reset-password'
     | '/_auth/sign-in'
-    | '/_auth/sign-up'
     | '/_auth/verify-email'
     | '/api/$'
     | '/docs/permissions'
@@ -239,13 +227,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/sign-up': {
-      id: '/_auth/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof AuthSignUpRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/sign-in': {
       id: '/_auth/sign-in'
       path: '/sign-in'
@@ -289,7 +270,6 @@ interface AuthRouteChildren {
   AuthAuthRoute: typeof AuthAuthRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
-  AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
 }
 
@@ -298,7 +278,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthAuthRoute: AuthAuthRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
-  AuthSignUpRoute: AuthSignUpRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
 }
 
