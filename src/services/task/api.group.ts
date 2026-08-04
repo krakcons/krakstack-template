@@ -6,8 +6,7 @@ import {
 } from "effect/unstable/httpapi";
 import { OpenApi } from "effect/unstable/httpapi";
 
-import { AuthMiddleware } from "@/services/auth/middleware";
-import { Forbidden } from "@krak-stack/auth/access";
+import { ActorRequired, Forbidden } from "@krak-stack/auth/server";
 
 import {
   CreateTaskSchema,
@@ -109,4 +108,4 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
       }),
     ),
   )
-  .middleware(AuthMiddleware);
+  .middleware(ActorRequired());

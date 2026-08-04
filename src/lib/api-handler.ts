@@ -4,10 +4,11 @@ import { HttpApiScalar } from "effect/unstable/httpapi";
 
 import { Api } from "@/api";
 import { apiLayer } from "@/lib/api-builder";
+import { mcpLayer } from "@/lib/mcp-handler";
 import { OpenTelemetry } from "@/services/opentelemetry";
 
 const docsLayer = HttpApiScalar.layer(Api, { path: "/api/docs" });
-const allRoutes = Layer.mergeAll(apiLayer, docsLayer);
+const allRoutes = Layer.mergeAll(apiLayer, docsLayer, mcpLayer);
 const appLayer = Layer.mergeAll(allRoutes, OpenTelemetry.layer).pipe(
   Layer.provide(HttpServer.layerServices),
 );

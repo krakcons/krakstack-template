@@ -1,7 +1,11 @@
+import { KrakstackAuthProvider } from "@krak-stack/auth";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 
+import { ThemeProvider, useTheme } from "@/components/ui/theme-switcher";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { m } from "../paraglide/messages.js";
 import { getLocale } from "../paraglide/runtime.js";
+import { Access, AccessLabels } from "@/services/auth/access";
 import appCss from "../styles.css?url";
 
 const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
@@ -48,17 +52,41 @@ export const Route = createRootRoute({
         ]
       : [],
   }),
-  shellComponent: RootDocument,
+  shellComponent: RootShell,
 });
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang={getLocale()}>
+    <ThemeProvider>
+      <RootDocument>{children}</RootDocument>
+    </ThemeProvider>
+  );
+}
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+  const { systemTheme, theme } = useTheme();
+  const locale = getLocale().startsWith("fr") ? "fr" : "en";
+
+  return (
+    <html
+      className={theme === "system" ? systemTheme : theme}
+      lang={getLocale()}
+      suppressHydrationWarning
+    >
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
+        <TooltipProvider>
+          <KrakstackAuthProvider
+            access={Access}
+            accessLabels={AccessLabels}
+            locale={locale}
+            projectId={import.meta.env.VITE_KRAKSTACK_AUTH_PROJECT_ID}
+          >
+            {children}
+          </KrakstackAuthProvider>
+        </TooltipProvider>
         <Scripts />
       </body>
     </html>

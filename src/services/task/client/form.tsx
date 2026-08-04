@@ -1,8 +1,10 @@
-import { useEffect, useState, type ReactElement } from "react";
-import { useAtomSet } from "@effect/atom-react";
+import { useAtomSet, useAtomSubscribe, useAtomValue } from "@effect/atom-react";
+import { FormBuilder, FormReact } from "@lucas-barake/effect-form-react";
 import { Schema } from "effect";
+import { AsyncResult } from "effect/unstable/reactivity";
+import { useState, type ReactElement } from "react";
 
-import { useAppForm } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -13,8 +15,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { CreateTaskSchema } from "@/services/task/schema";
+import {
+  BlockNavigation,
+  SubmitButton,
+  SubmitError,
+  TextAreaField,
+  TextField,
+} from "@/components/ui/effect-form";
+import { FieldGroup } from "@/components/ui/field";
+import { m } from "@/paraglide/messages";
 
 import { createTaskAtom, updateTaskAtom, type Task } from "./atom";
 
@@ -25,12 +34,112 @@ type Props = {
   trigger?: ReactElement;
 };
 
-const getErrorMessage = (isEditing: boolean, error: unknown) => {
-  if (error instanceof Error && error.message.trim().length > 0) {
-    return error.message;
-  }
+const TaskFormSchema = Schema.Struct({
+  title: Schema.String.pipe(
+    Schema.refine((value): value is string => value.trim().length > 0, {
+      message: m.tasks_title_required(),
+    }),
+  ),
+  description: Schema.String,
+}).annotate({ identifier: "TaskForm" });
 
-  return isEditing ? "Failed to save task." : "Failed to create task.";
+const taskFormBuilder = FormBuilder.empty
+  .addField("title", TaskFormSchema.fields.title)
+  .addField("description", TaskFormSchema.fields.description);
+
+const makeTaskForm = (task?: Task | null) =>
+  FormReact.make(taskFormBuilder, {
+    fields: {
+      title: TextField,
+      description: TextAreaField,
+    },
+    mode: { validation: "onSubmit" },
+    reactivityKeys: ["tasks"],
+    onSubmit: (_, { decoded, get }) => {
+      const title = decoded.title.trim();
+      const description = decoded.description.trim();
+
+      return task
+        ? get.setResult(updateTaskAtom, {
+            params: { id: task.id },
+            payload: { title, description: description || null },
+          })
+        : get.setResult(createTaskAtom, {
+            payload: { title, description: description || undefined },
+          });
+    },
+  });
+
+const TaskForm = ({
+  task,
+  onSuccess,
+}: Pick<Props, "task"> & {
+  onSuccess: () => void;
+}) => {
+  const [form] = useState(() => makeTaskForm(task));
+  const submit = useAtomSet(form.submit);
+  const submitResult = useAtomValue(form.submit);
+
+  useAtomSubscribe(form.submit, (result) => {
+    if (AsyncResult.isSuccess(result)) onSuccess();
+  });
+
+  const isEditing = Boolean(task);
+
+  return (
+    <form.Initialize
+      defaultValues={{
+        title: task?.title ?? "",
+        description: task?.description ?? "",
+      }}
+    >
+      <BlockNavigation form={form} />
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? m.tasks_edit_title() : m.tasks_create_title()}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? m.tasks_edit_description()
+              : m.tasks_create_description()}
+          </DialogDescription>
+        </DialogHeader>
+
+        <FieldGroup>
+          <form.title
+            label={m.tasks_title_label()}
+            placeholder={m.tasks_title_placeholder()}
+            autoFocus
+          />
+          <form.description
+            label={m.tasks_description_label()}
+            placeholder={m.tasks_description_placeholder()}
+          />
+        </FieldGroup>
+
+        <SubmitError result={submitResult} />
+
+        <DialogFooter>
+          <button type="submit" className="sr-only">
+            {isEditing ? m.tasks_save() : m.tasks_create()}
+          </button>
+          <DialogClose render={<Button type="button" variant="outline" />}>
+            {m.tasks_cancel()}
+          </DialogClose>
+          <SubmitButton form={form}>
+            {isEditing ? m.tasks_save() : m.tasks_create()}
+          </SubmitButton>
+        </DialogFooter>
+      </form>
+    </form.Initialize>
+  );
 };
 
 export function TaskDialog({
@@ -39,79 +148,11 @@ export function TaskDialog({
   onOpenChange,
   trigger,
 }: Props) {
-  const createTask = useAtomSet(createTaskAtom);
-  const updateTask = useAtomSet(updateTaskAtom);
   const [internalOpen, setInternalOpen] = useState(false);
-  const [error, setError] = useState("");
-
   const open = controlledOpen ?? internalOpen;
-  const isEditing = Boolean(task);
-
-  const form = useAppForm({
-    defaultValues: {
-      title: task?.title ?? "",
-      description: task?.description ?? "",
-    } as (typeof CreateTaskSchema)["Encoded"],
-    validators: {
-      onSubmit: Schema.toStandardSchemaV1(CreateTaskSchema),
-    },
-    onSubmit: async ({ value }) => {
-      setError("");
-
-      const trimmedTitle = value.title.trim();
-      const trimmedDescription = value.description?.trim();
-
-      if (!trimmedTitle) {
-        setError("Title is required.");
-        return;
-      }
-
-      try {
-        if (task) {
-          await Promise.resolve(
-            updateTask({
-              params: { id: task.id },
-              payload: {
-                title: trimmedTitle,
-                description: trimmedDescription || null,
-              },
-              reactivityKeys: ["tasks"],
-            }),
-          );
-        } else {
-          await Promise.resolve(
-            createTask({
-              payload: {
-                title: trimmedTitle,
-                description: trimmedDescription || undefined,
-              },
-              reactivityKeys: ["tasks"],
-            }),
-          );
-        }
-
-        handleOpenChange(false);
-      } catch (error) {
-        setError(getErrorMessage(isEditing, error));
-      }
-    },
-  });
-
-  useEffect(() => {
-    if (!open) return;
-
-    form.reset({
-      title: task?.title ?? "",
-      description: task?.description ?? "",
-    });
-    setError("");
-  }, [form, open, task]);
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (controlledOpen === undefined) {
-      setInternalOpen(nextOpen);
-    }
-
+    if (controlledOpen === undefined) setInternalOpen(nextOpen);
     onOpenChange?.(nextOpen);
   };
 
@@ -119,54 +160,11 @@ export function TaskDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            form.handleSubmit();
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit task" : "Create task"}</DialogTitle>
-            <DialogDescription>
-              {isEditing
-                ? "Update the task details."
-                : "Add a task to the list."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <form.AppForm>
-            <form.AppField name="title">
-              {(field) => (
-                <field.TextField
-                  label="Title"
-                  placeholder="Ship the table view"
-                  autoFocus
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="description">
-              {(field) => (
-                <field.TextAreaField
-                  label="Description"
-                  placeholder="Optional details"
-                />
-              )}
-            </form.AppField>
-
-            <div className="text-destructive min-h-5 text-sm">
-              {error || null}
-            </div>
-
-            <DialogFooter>
-              <DialogClose render={<Button type="button" variant="outline" />}>
-                Cancel
-              </DialogClose>
-              <form.SubmitButton />
-            </DialogFooter>
-          </form.AppForm>
-        </form>
+        <TaskForm
+          key={`${task?.id ?? "create"}-${open ? "open" : "closed"}`}
+          task={task}
+          onSuccess={() => handleOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

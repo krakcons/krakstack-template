@@ -1,8 +1,8 @@
 import { ProjectAccessMatrix } from "@krak-stack/auth/access/matrix";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { ThemeSwitcher, useTheme } from "@/components/ui/theme-switcher";
 import { appDocs } from "@/lib/app-docs";
 import {
   DocsContent,
@@ -38,7 +38,9 @@ function PermissionsPage() {
       locale={resolution.page.locale}
       headerActions={
         <>
-          <ThemeSwitcher />
+          <ClientOnly fallback={null}>
+            <DocsThemeSwitcher />
+          </ClientOnly>
           <LocaleSwitcher />
         </>
       }
@@ -72,3 +74,8 @@ function PermissionsPage() {
     </DocsLayout>
   );
 }
+
+const DocsThemeSwitcher = () => {
+  const { setTheme, theme } = useTheme();
+  return <ThemeSwitcher value={theme} onChange={setTheme} />;
+};

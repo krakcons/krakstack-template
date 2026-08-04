@@ -1,7 +1,12 @@
-import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import {
+  ClientOnly,
+  createFileRoute,
+  notFound,
+  redirect,
+} from "@tanstack/react-router";
 
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { ThemeSwitcher, useTheme } from "@/components/ui/theme-switcher";
 import { appDocs } from "@/lib/app-docs";
 import { DocsLayout, DocsNotFound, DocsPage } from "@/lib/docs";
 import { getLocale } from "@/paraglide/runtime";
@@ -35,7 +40,9 @@ function DocsRoutePage() {
       locale={resolution.page.locale}
       headerActions={
         <>
-          <ThemeSwitcher />
+          <ClientOnly fallback={null}>
+            <DocsThemeSwitcher />
+          </ClientOnly>
           <LocaleSwitcher />
         </>
       }
@@ -44,3 +51,8 @@ function DocsRoutePage() {
     </DocsLayout>
   );
 }
+
+const DocsThemeSwitcher = () => {
+  const { setTheme, theme } = useTheme();
+  return <ThemeSwitcher value={theme} onChange={setTheme} />;
+};

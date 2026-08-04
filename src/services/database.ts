@@ -2,7 +2,6 @@ import * as PgDrizzle from "drizzle-orm/effect-postgres";
 import { Config, Context, Effect, Layer, Redacted } from "effect";
 import { PgClient } from "@effect/sql-pg";
 import { types } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
 
 // @ts-ignore - TODO: Setup your own schema and remove this comment
 import { relations } from "@/db/schema";
@@ -45,7 +44,3 @@ export class DB extends Context.Service<DB>()("DB", {
     Layer.provide(pgLayerFromConfig("TEST_DATABASE_URL")),
   );
 }
-
-export const db = drizzle(process.env.DATABASE_URL!, {
-  relations,
-});

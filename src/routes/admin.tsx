@@ -1,11 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
-import {
-  KrakstackAuthProvider,
-  OrganizationSwitcher,
-  UserButton,
-} from "@krak-stack/auth";
+import { OrganizationSwitcher, UserButton } from "@krak-stack/auth";
 
 import { TableSearchSchemaStandard as TableSearchSchema } from "@/components/ui/data-table";
 import {
@@ -17,10 +13,13 @@ import { TaskTable } from "@/services/task/client/table";
 import { Button } from "@/components/ui/button";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
-import { authBaseUrl, authClient, authLoginUrl } from "@/services/auth/client";
+import {
+  authCallbackUrl,
+  authClient,
+  authLoginUrl,
+} from "@/services/auth/client";
 import { LocaleSwitcher } from "@/components/ui/locale-switcher";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
-import { Access, AccessLabels } from "@/services/auth/access";
+import { ThemeSwitcher, useTheme } from "@/components/ui/theme-switcher";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,
@@ -30,10 +29,7 @@ export const Route = createFileRoute("/admin")({
 
     if (!session.data) {
       throw redirect({
-        href: authLoginUrl(
-          `${import.meta.env.VITE_SITE_URL}/admin`,
-          getLocale(),
-        ),
+        href: authLoginUrl(authCallbackUrl("/admin"), getLocale()),
       });
     }
 
@@ -43,53 +39,47 @@ export const Route = createFileRoute("/admin")({
 });
 
 function Admin() {
+  const { setTheme, theme } = useTheme();
+
   return (
-    <KrakstackAuthProvider
-      access={Access}
-      accessLabels={AccessLabels}
-      authClient={authClient}
-      baseUrl={authBaseUrl}
-      locale={getLocale()}
+    <SidebarLayout
+      sidebarHeader={
+        <OrganizationSwitcher
+          className="w-full group-data-[collapsible=icon]:hidden"
+          side="right"
+        />
+      }
+      groups={[
+        {
+          label: m.admin_sidebar_workspace,
+          items: [
+            {
+              label: m.admin_sidebar_tasks,
+              href: "/admin",
+              icon: CheckSquare,
+            },
+          ],
+        },
+      ]}
+      headerActions={
+        <>
+          <ThemeSwitcher value={theme} onChange={setTheme} />
+          <LocaleSwitcher />
+          <UserButton />
+        </>
+      }
     >
-      <SidebarLayout
-        sidebarHeader={
-          <OrganizationSwitcher
-            className="w-full group-data-[collapsible=icon]:hidden"
-            side="right"
+      <SidebarPageHeader
+        badge={{ label: m.admin_badge(), variant: "outline" }}
+        title={m.admin_title()}
+        description={m.admin_description()}
+        actions={
+          <TaskDialog
+            trigger={<Button type="button">{m.tasks_create()}</Button>}
           />
         }
-        groups={[
-          {
-            label: m.admin_sidebar_workspace,
-            items: [
-              {
-                label: m.admin_sidebar_tasks,
-                href: "/admin",
-                icon: CheckSquare,
-              },
-            ],
-          },
-        ]}
-        headerActions={
-          <>
-            <ThemeSwitcher />
-            <LocaleSwitcher />
-            <UserButton />
-          </>
-        }
-      >
-        <SidebarPageHeader
-          badge={{ label: m.admin_badge(), variant: "outline" }}
-          title={m.admin_title()}
-          description={m.admin_description()}
-          actions={
-            <TaskDialog
-              trigger={<Button type="button">{m.tasks_create()}</Button>}
-            />
-          }
-        />
-        <TaskTable from="/admin" />
-      </SidebarLayout>
-    </KrakstackAuthProvider>
+      />
+      <TaskTable from="/admin" />
+    </SidebarLayout>
   );
 }

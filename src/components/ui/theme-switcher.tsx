@@ -1,5 +1,14 @@
-import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { ScriptOnce } from "@tanstack/react-router";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,85 +20,211 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { m } from "@/paraglide/messages";
+import { getLocale } from "@/paraglide/runtime";
 
-type Theme = "light" | "dark" | "system";
+const messages = {
+  en: {
+    title: "Switch theme",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
+  fr: {
+    title: "Changer de thème",
+    light: "Clair",
+    dark: "Sombre",
+    system: "Système",
+  },
+} as const satisfies Record<"en" | "fr", Record<Theme | "title", string>>;
 
-const storageKey = "theme";
+type ThemeSwitcherMessages = Partial<Record<Theme | "title", string>>;
 
-const themes = ["light", "dark", "system"] as const satisfies Theme[];
+const themeMessages = (overrides?: ThemeSwitcherMessages) => ({
+  ...(getLocale().startsWith("fr") ? messages.fr : messages.en),
+  ...overrides,
+});
 
-const themeLabel = (theme: Theme) => {
-  switch (theme) {
-    case "light":
-      return m.theme_light();
-    case "dark":
-      return m.theme_dark();
-    case "system":
-      return m.theme_system();
+const DEFAULT_THEME: Theme = "system";
+const DEFAULT_SYSTEM_THEME: SystemTheme = "light";
+
+export const themes = ["light", "dark", "system"] as const;
+
+export type Theme = "light" | "dark" | "system";
+export type SystemTheme = "dark" | "light";
+
+type ThemeProviderState = {
+  systemTheme: SystemTheme;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
+
+type ThemePayload = {
+  systemTheme: SystemTheme;
+  theme: Theme;
+};
+
+type ThemeProviderProps = {
+  children: ReactNode;
+  initialTheme?: ThemePayload;
+  scriptDisabled?: boolean;
+};
+
+type ThemeSwitcherProps = {
+  messages?: ThemeSwitcherMessages;
+  options?: ReadonlyArray<Theme>;
+  value: Theme;
+  onChange: (value: Theme) => void;
+};
+
+const ThemeProviderContext = createContext<ThemeProviderState | null>(null);
+
+const iconForTheme = {
+  light: Sun,
+  dark: Moon,
+  system: Monitor,
+} as const;
+
+const themeScript = `(function() {
+  try {
+    const theme = localStorage.getItem('theme') || 'auto';
+    const resolved = theme === 'auto' || theme === 'system'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme;
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(resolved);
+  } catch (e) {}
+})();`;
+
+const isTheme = (value: string | undefined): value is Theme =>
+  value === "light" || value === "dark" || value === "system";
+
+const currentSystemTheme = (): SystemTheme =>
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+const applyDocumentTheme = ({ theme, systemTheme }: ThemePayload) => {
+  const resolvedTheme = theme === "system" ? systemTheme : theme;
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(resolvedTheme);
+};
+
+const getInitialTheme = (initialTheme?: ThemePayload): ThemePayload => {
+  if (typeof window === "undefined") {
+    return (
+      initialTheme ?? {
+        theme: DEFAULT_THEME,
+        systemTheme: DEFAULT_SYSTEM_THEME,
+      }
+    );
   }
+
+  const theme = window.localStorage.getItem("theme") ?? undefined;
+
+  return {
+    theme: isTheme(theme) ? theme : (initialTheme?.theme ?? DEFAULT_THEME),
+    systemTheme: currentSystemTheme(),
+  };
 };
 
-const storedTheme = (): Theme => {
-  const value = localStorage.getItem(storageKey);
-  return themes.find((theme) => theme === value) ?? "system";
+const persistTheme = (payload: ThemePayload) => {
+  window.localStorage.setItem("theme", payload.theme);
 };
 
-const applyTheme = (theme: Theme) => {
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  document.documentElement.classList.toggle(
-    "dark",
-    theme === "dark" || (theme === "system" && prefersDark),
+export const ThemeProvider = ({
+  children,
+  initialTheme,
+  scriptDisabled,
+}: ThemeProviderProps) => {
+  const [{ theme, systemTheme }, setThemeState] = useState(() =>
+    getInitialTheme(initialTheme),
+  );
+
+  const updateTheme = useCallback((payload: ThemePayload) => {
+    setThemeState(payload);
+    persistTheme(payload);
+    applyDocumentTheme(payload);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const syncSystemTheme = () => {
+      const nextSystemTheme = currentSystemTheme();
+      setThemeState((current) => {
+        if (current.systemTheme === nextSystemTheme) return current;
+
+        const next = { ...current, systemTheme: nextSystemTheme };
+        persistTheme(next);
+        applyDocumentTheme(next);
+        return next;
+      });
+    };
+
+    syncSystemTheme();
+    media.addEventListener("change", syncSystemTheme);
+
+    return () => media.removeEventListener("change", syncSystemTheme);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      systemTheme,
+      theme,
+      setTheme: (theme: Theme) => updateTheme({ theme, systemTheme }),
+    }),
+    [systemTheme, theme, updateTheme],
+  );
+
+  return (
+    <>
+      {scriptDisabled ? null : <ScriptOnce>{themeScript}</ScriptOnce>}
+      <ThemeProviderContext.Provider value={value}>
+        {children}
+      </ThemeProviderContext.Provider>
+    </>
   );
 };
 
-export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<Theme>("system");
+export const useTheme = () => {
+  const context = useContext(ThemeProviderContext);
 
-  useEffect(() => {
-    const selectedTheme = storedTheme();
-    setTheme(selectedTheme);
-    applyTheme(selectedTheme);
+  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
 
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      if (storedTheme() === "system") applyTheme("system");
-    };
+  return context;
+};
 
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, []);
-
-  const onValueChange = (value: string) => {
-    const nextTheme =
-      themes.find((candidate) => candidate === value) ?? "system";
-    localStorage.setItem(storageKey, nextTheme);
-    setTheme(nextTheme);
-    applyTheme(nextTheme);
-  };
+export const ThemeSwitcher = ({
+  messages,
+  options = themes,
+  value,
+  onChange,
+}: ThemeSwitcherProps) => {
+  const labels = themeMessages(messages);
+  const Icon = iconForTheme[value];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label={m.theme_switcher_label()}
-          >
-            <Sun className="size-4 dark:hidden" />
-            <Moon className="hidden size-4 dark:block" />
-            <span className="sr-only">{m.theme_switcher_label()}</span>
+          <Button variant="outline" size="icon" aria-label={labels.title}>
+            <Icon aria-hidden="true" />
+            <span className="sr-only">{labels.title}</span>
           </Button>
         }
       />
-      <DropdownMenuContent className="w-32" align="end">
+      <DropdownMenuContent className="w-32">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>{m.theme_switcher_label()}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={theme} onValueChange={onValueChange}>
-            {themes.map((candidate) => (
-              <DropdownMenuRadioItem key={candidate} value={candidate}>
-                {themeLabel(candidate)}
+          <DropdownMenuLabel>{labels.title}</DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            aria-label={labels.title}
+            value={value}
+            onValueChange={(theme) => {
+              const selected = options.find((option) => option === theme);
+              if (selected) onChange(selected);
+            }}
+          >
+            {options.map((theme) => (
+              <DropdownMenuRadioItem key={theme} value={theme}>
+                <ThemeOptionIcon theme={theme} />
+                <span>{labels[theme]}</span>
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>
@@ -97,4 +232,10 @@ export function ThemeSwitcher() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};
+
+const ThemeOptionIcon = ({ theme }: { theme: Theme }) => {
+  const Icon = iconForTheme[theme];
+
+  return <Icon aria-hidden="true" className="text-muted-foreground" />;
+};

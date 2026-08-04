@@ -10,14 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slug}'
 import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as AuthVerifyEmailRouteImport } from './routes/_auth/verify-email'
+import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
+import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
+import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as Auth2faRouteImport } from './routes/_auth/2fa'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -40,49 +52,140 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthAuthRoute = AuthAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => AuthRoute,
+} as any)
+const Auth2faRoute = Auth2faRouteImport.update({
+  id: '/2fa',
+  path: '/2fa',
+  getParentRoute: () => AuthRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/2fa': typeof Auth2faRoute
+  '/auth': typeof AuthAuthRoute
+  '/reset-password': typeof AuthResetPasswordRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-up': typeof AuthSignUpRoute
+  '/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/2fa': typeof Auth2faRoute
+  '/auth': typeof AuthAuthRoute
+  '/reset-password': typeof AuthResetPasswordRoute
+  '/sign-in': typeof AuthSignInRoute
+  '/sign-up': typeof AuthSignUpRoute
+  '/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
   '/admin': typeof AdminRoute
+  '/_auth/2fa': typeof Auth2faRoute
+  '/_auth/auth': typeof AuthAuthRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
+  '/_auth/sign-in': typeof AuthSignInRoute
+  '/_auth/sign-up': typeof AuthSignUpRoute
+  '/_auth/verify-email': typeof AuthVerifyEmailRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/$' | '/docs/permissions' | '/docs/{-$slug}'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/$' | '/docs/permissions' | '/docs/{-$slug}'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
     | '/admin'
+    | '/2fa'
+    | '/auth'
+    | '/reset-password'
+    | '/sign-in'
+    | '/sign-up'
+    | '/verify-email'
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
+    | '/api/auth/$'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/admin'
+    | '/2fa'
+    | '/auth'
+    | '/reset-password'
+    | '/sign-in'
+    | '/sign-up'
+    | '/verify-email'
+    | '/api/$'
+    | '/docs/permissions'
+    | '/docs/{-$slug}'
+    | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/_auth'
+    | '/admin'
+    | '/_auth/2fa'
+    | '/_auth/auth'
+    | '/_auth/reset-password'
+    | '/_auth/sign-in'
+    | '/_auth/sign-up'
+    | '/_auth/verify-email'
+    | '/api/$'
+    | '/docs/permissions'
+    | '/docs/{-$slug}'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
   AdminRoute: typeof AdminRoute
   ApiSplatRoute: typeof ApiSplatRoute
   DocsPermissionsRoute: typeof DocsPermissionsRoute
   DocsChar123SlugChar125Route: typeof DocsChar123SlugChar125Route
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -122,15 +232,86 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/verify-email': {
+      id: '/_auth/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/sign-up': {
+      id: '/_auth/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/sign-in': {
+      id: '/_auth/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/auth': {
+      id: '/_auth/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthAuthRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/2fa': {
+      id: '/_auth/2fa'
+      path: '/2fa'
+      fullPath: '/2fa'
+      preLoaderRoute: typeof Auth2faRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthRouteChildren {
+  Auth2faRoute: typeof Auth2faRoute
+  AuthAuthRoute: typeof AuthAuthRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignUpRoute: typeof AuthSignUpRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  Auth2faRoute: Auth2faRoute,
+  AuthAuthRoute: AuthAuthRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthSignInRoute: AuthSignInRoute,
+  AuthSignUpRoute: AuthSignUpRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
   AdminRoute: AdminRoute,
   ApiSplatRoute: ApiSplatRoute,
   DocsPermissionsRoute: DocsPermissionsRoute,
   DocsChar123SlugChar125Route: DocsChar123SlugChar125Route,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

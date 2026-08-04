@@ -133,6 +133,29 @@ The Effect HTTP API is served at `/api` with auto-generated docs:
 - **Scalar docs**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
 - **OpenAPI spec**: [http://localhost:3000/api/openapi.json](http://localhost:3000/api/openapi.json)
 
+### CLI
+
+The generated CLI exposes the same typed HttpApi operations. Set
+`VITE_SITE_URL` and a user API key, then run commands by API group:
+
+```bash
+KRAKSTACK_TEMPLATE_API_KEY=your-key bun run cli -- list
+KRAKSTACK_TEMPLATE_API_KEY=your-key bun run cli -- tasks listTasks
+```
+
+Operation inputs use JSON flags such as `--params`, `--query`, `--headers`,
+and `--body`.
+
+### MCP
+
+The MCP HTTP endpoint is served at `/api/mcp`. It exposes read-only GET
+operations and forwards the request's `x-api-key` header to the typed API
+client:
+
+```text
+http://localhost:3000/api/mcp
+```
+
 ### Endpoints
 
 | Method | Path             | Description      |

@@ -1,4 +1,5 @@
 import { HttpApi, OpenApi } from "effect/unstable/httpapi";
+import { AuthMiddleware } from "@krak-stack/auth/server";
 
 import { TasksApiGroup } from "@/services/task/api.group";
 
@@ -11,4 +12,5 @@ export const Api = HttpApi.make("Api")
     }),
   )
   .add(TasksApiGroup)
-  .prefix("/api");
+  .prefix("/api")
+  .middleware(AuthMiddleware);
