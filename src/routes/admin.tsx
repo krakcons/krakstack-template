@@ -43,12 +43,7 @@ function Admin() {
 
   return (
     <SidebarLayout
-      sidebarHeader={
-        <OrganizationSwitcher
-          className="w-full group-data-[collapsible=icon]:hidden"
-          side="right"
-        />
-      }
+      sidebarHeader={<OrganizationSwitcher className="w-full" side="right" />}
       groups={[
         {
           label: m.admin_sidebar_workspace,
