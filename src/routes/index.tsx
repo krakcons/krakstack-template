@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LayoutDashboard } from "lucide-react";
 
-import { AppBrand } from "@/components/ui/app-brand";
+import { AppBrand } from "@krak-stack/registry/app-brand";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LocaleSwitcher } from "@/components/ui/locale-switcher";
+import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
 import { m } from "@/paraglide/messages";
 
 export const Route = createFileRoute("/")({

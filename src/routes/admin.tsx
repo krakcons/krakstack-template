@@ -3,11 +3,11 @@ import { CheckSquare } from "lucide-react";
 
 import { OrganizationSwitcher, UserButton } from "@krak-stack/auth";
 
-import { TableSearchSchemaStandard as TableSearchSchema } from "@/components/ui/data-table";
+import { TableSearchSchemaStandard as TableSearchSchema } from "@krak-stack/registry/data-table";
 import {
   SidebarLayout,
   SidebarPageHeader,
-} from "@/components/ui/sidebar-layout";
+} from "@krak-stack/registry/sidebar-layout";
 import { TaskDialog } from "@/services/task/client/form";
 import { TaskTable } from "@/services/task/client/table";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,8 @@ import {
   authClient,
   authLoginUrl,
 } from "@/services/auth/client";
-import { LocaleSwitcher } from "@/components/ui/locale-switcher";
-import { ThemeSwitcher, useTheme } from "@/components/ui/theme-switcher";
+import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
+import { ThemeSwitcher, useTheme } from "@krak-stack/registry/theme-switcher";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,

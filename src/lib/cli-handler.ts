@@ -1,10 +1,10 @@
 import { Config, Effect, Layer, Option } from "effect";
 import { FetchHttpClient } from "effect/unstable/http";
+import { HttpApiCli, runHttpApiCli } from "@krak-stack/registry/httpapi/cli";
+import { ApiClient } from "@krak-stack/registry/httpapi/client";
+import { HttpApiSpec } from "@krak-stack/registry/httpapi/helpers";
 
 import { Api } from "@/api";
-import { HttpApiCli, runHttpApiCli } from "@/lib/httpapi-cli";
-import { ApiClient } from "@/lib/httpapi-client";
-import { HttpApiSpec } from "@/lib/httpapi-helpers";
 import { authClientLayer } from "@/services/auth/client/layer";
 
 const apiClientLayer = Layer.unwrap(

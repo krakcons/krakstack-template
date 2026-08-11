@@ -21,7 +21,7 @@ import {
   SubmitError,
   TextAreaField,
   TextField,
-} from "@/components/ui/effect-form";
+} from "@krak-stack/registry/effect-form";
 import { FieldGroup } from "@/components/ui/field";
 import { m } from "@/paraglide/messages";
 

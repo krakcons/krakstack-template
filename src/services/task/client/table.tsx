@@ -4,7 +4,10 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { CheckCircle2, Circle, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useAtomSet } from "@effect/atom-react";
 
-import { DataTable, DataTableColumnHeader } from "@/components/ui/data-table";
+import {
+  DataTable,
+  DataTableColumnHeader,
+} from "@krak-stack/registry/data-table";
 import {
   AlertDialog,
   AlertDialogAction,

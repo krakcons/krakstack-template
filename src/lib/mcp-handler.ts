@@ -4,15 +4,15 @@ import {
   HttpRouter,
   HttpServerRequest,
 } from "effect/unstable/http";
-
-import { Api } from "@/api";
-import { ApiClient } from "@/lib/httpapi-client";
+import { ApiClient } from "@krak-stack/registry/httpapi/client";
+import { HttpApiSpec } from "@krak-stack/registry/httpapi/helpers";
 import {
   HttpApiMcp,
   httpApiMcpServerLayer,
   httpApiMcpToolsLayer,
-} from "@/lib/httpapi-mcp";
-import { HttpApiSpec } from "@/lib/httpapi-helpers";
+} from "@krak-stack/registry/httpapi/mcp";
+
+import { Api } from "@/api";
 import { authClientLayer, CurrentApiKey } from "@/services/auth/client/layer";
 
 const apiClientLayer = Layer.unwrap(
