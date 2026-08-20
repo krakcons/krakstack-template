@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { AsyncResult } from "effect/unstable/reactivity";
-import { type ColumnDef } from "@tanstack/react-table";
 import { CheckCircle2, Circle, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useAtomSet } from "@effect/atom-react";
 
 import {
   DataTable,
+  type DataTableColumnDef,
   DataTableColumnHeader,
 } from "@krak-stack/registry/data-table";
 import {
@@ -48,7 +48,7 @@ export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
     onSuccess: ({ value }) => Array.from(value),
   });
 
-  const columns: ColumnDef<Task>[] = [
+  const columns: DataTableColumnDef<Task>[] = [
     {
       accessorKey: "title",
       header: ({ column }) => (
