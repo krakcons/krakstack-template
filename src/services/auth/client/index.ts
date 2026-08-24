@@ -1,9 +1,9 @@
 import { createAuthUiClient } from "@krak-stack/auth";
+import { createIsomorphicFn } from "@tanstack/react-start";
 
-const appBaseUrl = () =>
-  typeof window === "undefined"
-    ? import.meta.env.VITE_SITE_URL
-    : window.location.origin;
+const appBaseUrl = createIsomorphicFn()
+  .server(() => import.meta.env.VITE_SITE_URL)
+  .client(() => window.location.origin);
 
 export const krakstackAuthUrl = import.meta.env.VITE_KRAKSTACK_AUTH_URL;
 
@@ -20,11 +20,11 @@ export const authLoginUrl = (
   return url.toString();
 };
 
-export const authCallbackUrl = (path: string) => {
-  if (typeof window === "undefined") return path;
-
-  const url = new URL(path, window.location.origin);
-  return `${url.pathname}${url.search}${url.hash}`;
-};
+export const authCallbackUrl = createIsomorphicFn()
+  .server((path: string) => path)
+  .client((path: string) => {
+    const url = new URL(path, window.location.origin);
+    return `${url.pathname}${url.search}${url.hash}`;
+  });
 
 export const authClient = createAuthUiClient(appBaseUrl());

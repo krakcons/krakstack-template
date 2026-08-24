@@ -13,7 +13,7 @@ import { Tasks } from "@/services/task";
 import { tasksHandler } from "@/services/task/api.builder";
 
 const healthLayer = HttpApiBuilder.group(Api, "health", healthHandler).pipe(
-  Layer.provide(
+  Layer.provideMerge(
     HealthService.layerWith({
       checks: {
         ready: [
@@ -34,10 +34,10 @@ const healthLayer = HttpApiBuilder.group(Api, "health", healthHandler).pipe(
 export const apiLayer = HttpApiBuilder.layer(Api, {
   openapiPath: "/api/openapi.json",
 }).pipe(
-  Layer.provide(healthLayer),
+  Layer.provideMerge(healthLayer),
   Layer.provide(tasksHandler),
   Layer.provide(AuthMiddleware.layer()),
   Layer.provide(ActorRequired.layer(Access)),
-  Layer.provide(Tasks.layer),
+  Layer.provideMerge(Tasks.layer),
   Layer.provide(DB.layer),
 );

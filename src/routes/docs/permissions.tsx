@@ -21,11 +21,12 @@ export const Route = createFileRoute("/docs/permissions")({
     if (!resolution) throw notFound();
     return resolution;
   },
-  head: ({ loaderData }) =>
-    appDocs.getHead({
-      locale: loaderData?.page.locale ?? getLocale(),
-      ...(loaderData?.page ? { page: loaderData.page } : {}),
-    }),
+  head: ({ loaderData }) => {
+    const locale = loaderData?.page.locale ?? getLocale();
+    return loaderData?.page
+      ? appDocs.getHead({ locale, page: loaderData.page })
+      : appDocs.getHead({ locale });
+  },
   component: PermissionsPage,
 });
 

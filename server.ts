@@ -64,6 +64,7 @@
  */
 
 import path from "node:path";
+import type { ServerEntry } from "@tanstack/react-start/server-entry";
 
 // Configuration
 const SERVER_PORT = Number(process.env.PORT ?? 3000);
@@ -218,7 +219,7 @@ function compressDataIfAppropriate(
   if (data.byteLength < GZIP_MIN_BYTES) return undefined;
   if (!isMimeTypeCompressible(mimeType)) return undefined;
   try {
-    return Bun.gzipSync(data.buffer as ArrayBuffer);
+    return Bun.gzipSync(new Uint8Array(data));
   } catch {
     return undefined;
   }
@@ -231,12 +232,12 @@ function createResponseHandler(
   asset: InMemoryAsset,
 ): (req: Request) => Response {
   return (req: Request) => {
-    const headers: Record<string, string> = {
+    const headers = new Headers({
       "Content-Type": asset.type,
       "Cache-Control": asset.immutable
         ? "public, max-age=31536000, immutable"
         : "public, max-age=3600",
-    };
+    });
 
     if (ENABLE_ETAG && asset.etag) {
       const ifNone = req.headers.get("if-none-match");
@@ -246,7 +247,7 @@ function createResponseHandler(
           headers: { ETag: asset.etag },
         });
       }
-      headers.ETag = asset.etag;
+      headers.set("ETag", asset.etag);
     }
 
     if (
@@ -254,13 +255,13 @@ function createResponseHandler(
       asset.gz &&
       req.headers.get("accept-encoding")?.includes("gzip")
     ) {
-      headers["Content-Encoding"] = "gzip";
-      headers["Content-Length"] = String(asset.gz.byteLength);
+      headers.set("Content-Encoding", "gzip");
+      headers.set("Content-Length", String(asset.gz.byteLength));
       const gzCopy = new Uint8Array(asset.gz);
       return new Response(gzCopy, { status: 200, headers });
     }
 
-    headers["Content-Length"] = String(asset.raw.byteLength);
+    headers.set("Content-Length", String(asset.raw.byteLength));
     const rawCopy = new Uint8Array(asset.raw);
     return new Response(rawCopy, { status: 200, headers });
   };
@@ -507,11 +508,11 @@ async function initializeServer() {
   log.header("Starting Production Server");
 
   // Load TanStack Start server handler
-  let handler: { fetch: (request: Request) => Response | Promise<Response> };
+  let handler: ServerEntry;
   try {
-    const serverModule = (await import(SERVER_ENTRY_POINT)) as {
-      default: { fetch: (request: Request) => Response | Promise<Response> };
-    };
+    const serverModule: { default: ServerEntry } = await import(
+      SERVER_ENTRY_POINT
+    );
     handler = serverModule.default;
     log.success("TanStack Start application handler initialized");
   } catch (error) {
@@ -554,7 +555,7 @@ async function initializeServer() {
 }
 
 // Initialize the server
-initializeServer().catch((error: unknown) => {
+initializeServer().catch((error) => {
   log.error(`Failed to start server: ${String(error)}`);
   process.exit(1);
 });

@@ -66,6 +66,7 @@
     "@effect/tsgo": "0.14.6",
     "@effect/vitest": "4.0.0-beta.85",
     "@inlang/paraglide-js": "^2.20.0",
+    "@oxlint/plugins": "^1.79.0",
     "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^22.19.19",
     "@types/pg": "^8.20.0",

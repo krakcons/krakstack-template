@@ -71,6 +71,11 @@ export const DocsHeadingSchema = Schema.Struct({
 
 export type DocsHeading = typeof DocsHeadingSchema.Type;
 
+const DocsHeadingTextPart = Schema.Union([
+  Schema.String,
+  Schema.Number,
+]).annotate({ identifier: "DocsHeadingTextPart" });
+
 export const DocsPageSchema = Schema.Struct({
   ...DocsFrontmatter.fields,
   headings: Schema.Array(DocsHeadingSchema),
@@ -481,10 +486,11 @@ export const makeDocs = (config: DocsConfig) => {
           left.entry.page.order - right.entry.page.order,
       )
       .slice(0, limit)
-      .map(({ entry }) => ({
-        page: entry.page,
-        ...("heading" in entry ? { heading: entry.heading } : {}),
-      }));
+      .map(({ entry }) =>
+        "heading" in entry
+          ? { page: entry.page, heading: entry.heading }
+          : { page: entry.page },
+      );
   };
   const url = (page: DocsPage, locale: DocsLocale) =>
     `${origin}/${locale}${page.path}`;
@@ -627,9 +633,9 @@ const docsPageTypeMessages = {
 } as const;
 
 const defaultSectionLabel = (locale: "en" | "fr", section: DocsSection) =>
-  docsSectionMessages[locale][
-    section as keyof (typeof docsSectionMessages)["en"]
-  ] ?? humanizeDocsValue(section);
+  Object.entries(docsSectionMessages[locale]).find(
+    ([key]) => key === section,
+  )?.[1] ?? humanizeDocsValue(section);
 
 const messages = {
   en: {
@@ -731,9 +737,7 @@ const iconFor = (name: string): LucideIcon => {
 
 const headingText = (children: ReactNode) =>
   Children.toArray(children)
-    .filter((child): child is string | number =>
-      ["string", "number"].includes(typeof child),
-    )
+    .filter(Schema.is(DocsHeadingTextPart))
     .join("");
 
 const makeDocsHeading = (
@@ -1025,12 +1029,16 @@ export const DocsLayout = ({
     groups.push({
       label: resources.label,
       items: [
-        ...resources.items.map((item) => ({
-          label: item.label,
-          href: item.href,
-          icon: iconFor(item.icon),
-          ...(item.external === undefined ? {} : { external: item.external }),
-        })),
+        ...resources.items.map((item) => {
+          const navItem = {
+            label: item.label,
+            href: item.href,
+            icon: iconFor(item.icon),
+          };
+          return item.external === undefined
+            ? navItem
+            : { ...navItem, external: item.external };
+        }),
         ...(docs.githubUrl
           ? [
               {
