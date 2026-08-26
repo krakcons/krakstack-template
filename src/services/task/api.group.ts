@@ -1,19 +1,71 @@
+import { AuthMiddleware } from "@krak-stack/auth/server";
 import { Schema } from "effect";
 import {
   HttpApiEndpoint,
   HttpApiError,
   HttpApiGroup,
+  HttpApiSchema,
+  OpenApi,
 } from "effect/unstable/httpapi";
-import { OpenApi } from "effect/unstable/httpapi";
 
-import { AuthMiddleware } from "@/services/auth/middleware";
+import { CreateTask, Task, TaskIdParams } from "./schema";
 
-import {
-  CreateTaskSchema,
-  TaskIdParamsSchema,
-  TaskSchema,
-  UpdateTaskSchema,
-} from "./schema";
+const LocaleParams = Schema.Struct({
+  locale: Schema.Literals(["en", "fr"]),
+});
+const HtmlTaskIdParams = Schema.Struct({
+  locale: Schema.Literals(["en", "fr"]),
+  id: Schema.String,
+});
+const TaskForm = Schema.Struct({
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+});
+const encodedForm = <S extends Schema.Top>(schema: S) =>
+  [
+    schema.pipe(HttpApiSchema.asFormUrlEncoded()),
+    schema.pipe(HttpApiSchema.asMultipart()),
+  ] as const;
+
+export const TaskHtmlApiGroup = HttpApiGroup.make("taskHtmlActions")
+  .add(
+    HttpApiEndpoint.get("stream", "/:locale/admin/tasks/stream", {
+      params: LocaleParams,
+      success: Schema.Unknown,
+      error: HttpApiError.InternalServerError,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.post("create", "/:locale/admin/tasks", {
+      params: LocaleParams,
+      payload: encodedForm(TaskForm),
+      success: Schema.Unknown,
+      error: HttpApiError.InternalServerError,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.put("update", "/:locale/admin/tasks/:id", {
+      params: HtmlTaskIdParams,
+      payload: encodedForm(TaskForm),
+      success: Schema.Unknown,
+      error: HttpApiError.InternalServerError,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.patch("toggle", "/:locale/admin/tasks/:id/toggle", {
+      params: HtmlTaskIdParams,
+      success: Schema.Unknown,
+      error: HttpApiError.InternalServerError,
+    }),
+  )
+  .add(
+    HttpApiEndpoint.delete("delete", "/:locale/admin/tasks/:id", {
+      params: HtmlTaskIdParams,
+      success: Schema.Unknown,
+      error: HttpApiError.InternalServerError,
+    }),
+  )
+  .middleware(AuthMiddleware);
 
 export const TasksApiGroup = HttpApiGroup.make("tasks")
   .annotateMerge(
@@ -23,78 +75,50 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
     }),
   )
   .add(
-    HttpApiEndpoint.get("listTasks", "/tasks", {
-      success: Schema.Array(TaskSchema),
+    HttpApiEndpoint.get("listTasks", "/api/tasks", {
+      success: Schema.Array(Task),
       error: [HttpApiError.Unauthorized, HttpApiError.InternalServerError],
-    }).annotateMerge(
-      OpenApi.annotations({
-        summary: "List all tasks",
-        description:
-          "Returns a list of all tasks belonging to the authenticated user",
-      }),
-    ),
+    }),
   )
   .add(
-    HttpApiEndpoint.post("createTask", "/tasks", {
-      payload: CreateTaskSchema,
-      success: TaskSchema,
+    HttpApiEndpoint.post("createTask", "/api/tasks", {
+      payload: CreateTask,
+      success: Task.pipe(HttpApiSchema.status(201)),
       error: [HttpApiError.Unauthorized, HttpApiError.InternalServerError],
-    }).annotateMerge(
-      OpenApi.annotations({
-        summary: "Create a task",
-        description: "Creates a new task for the authenticated user",
-      }),
-    ),
+    }),
   )
   .add(
-    HttpApiEndpoint.get("getTask", "/tasks/:id", {
-      params: TaskIdParamsSchema,
-      success: TaskSchema,
+    HttpApiEndpoint.put("updateTask", "/api/tasks/:id", {
+      params: TaskIdParams,
+      payload: CreateTask,
+      success: Task,
       error: [
         HttpApiError.Unauthorized,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
-    }).annotateMerge(
-      OpenApi.annotations({
-        summary: "Get a task by ID",
-        description:
-          "Retrieves a single task by its ID for the authenticated user",
-      }),
-    ),
+    }),
   )
   .add(
-    HttpApiEndpoint.patch("updateTask", "/tasks/:id", {
-      params: TaskIdParamsSchema,
-      payload: UpdateTaskSchema,
-      success: TaskSchema,
+    HttpApiEndpoint.patch("toggleTask", "/api/tasks/:id", {
+      params: TaskIdParams,
+      success: Task,
       error: [
         HttpApiError.Unauthorized,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
-    }).annotateMerge(
-      OpenApi.annotations({
-        summary: "Update a task",
-        description:
-          "Partially updates an existing task by its ID for the authenticated user",
-      }),
-    ),
+    }),
   )
   .add(
-    HttpApiEndpoint.delete("deleteTask", "/tasks/:id", {
-      params: TaskIdParamsSchema,
-      success: TaskSchema,
+    HttpApiEndpoint.delete("deleteTask", "/api/tasks/:id", {
+      params: TaskIdParams,
+      success: Task,
       error: [
         HttpApiError.Unauthorized,
         HttpApiError.NotFound,
         HttpApiError.InternalServerError,
       ],
-    }).annotateMerge(
-      OpenApi.annotations({
-        summary: "Delete a task",
-        description: "Deletes a task by its ID for the authenticated user",
-      }),
-    ),
+    }),
   )
   .middleware(AuthMiddleware);

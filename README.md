@@ -1,185 +1,77 @@
-# KrakStack Template
+# Effect + Datastar Task App
 
-A full-stack web application template built with TanStack Start, Effect, Drizzle ORM, and Tailwind CSS. Ships with a task CRUD demo featuring optimistic updates, i18n, and auto-generated API documentation
+A full-stack admin portal built with Bun, Effect, Effect SQL, Datastar,
+KrakStack Auth, PostgreSQL, and plain CSS. The server owns application state
+and renders HTML; Datastar sends actions and applies server-sent HTML patches
+without a client application framework.
 
-## Tech Stack
+## Quick Start
 
-| Layer      | Technology                                       |
-| ---------- | ------------------------------------------------ |
-| Runtime    | Bun                                              |
-| Framework  | TanStack Start (React + SSR)                     |
-| State      | Effect Atom (optimistic atoms)                   |
-| API        | Effect HTTP (OpenAPI + Scalar docs)              |
-| Database   | PostgreSQL via Drizzle ORM                       |
-| Styling    | Tailwind CSS + Shadcn (base-vega) + Lucide icons |
-| Forms      | TanStack Form                                    |
-| Tables     | TanStack Table                                   |
-| i18n       | Paraglide.js + inlang (English & French)         |
-| Linting    | Oxlint                                           |
-| Formatting | Oxfmt                                            |
+Requirements: Bun and PostgreSQL.
 
-## Prerequisites
-
-- [Bun](https://bun.sh/) >= 1.0
-- PostgreSQL (self-hosted)
-
-## Running Locally
-
-1. Install [Bun](https://bun.sh/)
-
-2. Set up a PostgreSQL database (version 14+, with `pgvector` and `postgis` extensions recommended) and note the connection string
-
-3. Copy the environment file and fill in your database URL:
-
-```bash
+```sh
 cp .env.example .env
-```
-
-Edit `.env`:
-
-```
-DATABASE_URL=postgresql://user:password@host:5432/dbname
-```
-
-4. Install dependencies:
-
-```bash
 bun install
+bun run dev
 ```
 
-5. Push the database schema:
+Open <http://localhost:3000/en> or <http://localhost:3000/fr>.
 
-```bash
-bunx drizzle-kit push
+The server creates the `tasks` table and its index at startup. Admin routes and
+task ownership use the authenticated KrakStack Auth user.
+
+Required authentication configuration:
+
+```text
+KRAKSTACK_AUTH_URL=https://auth.example.com
+KRAKSTACK_AUTH_SERVICE_API_KEY=...
 ```
 
-6. Start the dev server:
+The application proxies `/api/auth/*` to KrakStack Auth, keeping browser
+sessions same-origin.
 
-```bash
-bun --bun run dev
-```
+## Commands
 
-7. Open [http://localhost:3000](http://localhost:3000)
+| Command | Purpose |
+| --- | --- |
+| `bun run dev` | Run the Bun server in watch mode |
+| `bun run build` | Build the Bun server into `dist/` |
+| `bun run start` | Start the server |
+| `bun run test` | Run Bun tests |
+| `bun run type:check` | Type-check the TypeScript project |
 
-## Scripts
+## Architecture
 
-| Command                 | Description                        |
-| ----------------------- | ---------------------------------- |
-| `bun --bun run dev`     | Start Vite dev server on port 3000 |
-| `bun --bun run build`   | Production build                   |
-| `bun --bun run preview` | Preview production build           |
-| `bun run lint`          | Run Oxlint                         |
-| `bun run fmt`           | Run Oxfmt                          |
-| `bun run type:check`    | Run TypeScript type checking       |
-
-## Database
-
-Drizzle ORM manages the PostgreSQL schema. The schema is defined in `src/db/schema.ts`.
-
-| Command                     | Description                                  |
-| --------------------------- | -------------------------------------------- |
-| `bunx drizzle-kit push`     | Push schema changes directly to the database |
-| `bunx drizzle-kit generate` | Generate migration files from schema changes |
-| `bunx drizzle-kit migrate`  | Run pending migrations                       |
-| `bunx drizzle-kit studio`   | Open Drizzle Studio (database browser)       |
-
-### Current schema
-
-- **tasks** — `id` (UUID), `title`, `description`, `completed`, `created_at`, `updated_at`
-
-## Project Structure
-
-```
+```text
 src/
-├── api.ts                  # Effect HTTP API definition (endpoints & groups)
-├── server.ts               # TanStack Start server entry (Paraglide middleware)
-├── router.tsx              # TanStack Router config with i18n URL rewriting
-├── styles.css              # Tailwind CSS entry point
-├── db/
-│   └── schema.ts           # Drizzle ORM schema definitions
-├── services/
-│   ├── database.ts         # Effect-managed Drizzle + PostgreSQL connection
-│   └── task/
-│       ├── index.ts        # Tasks (CRUD operations with Effect)
-│       ├── schema.ts       # Effect Schema validation (Task, CreateTask, UpdateTask)
-│       └── handler.ts      # Effect HTTP API handlers wired to Tasks
-├── lib/
-│   ├── api-builder.ts      # Effect Layer wiring (API + handlers + services)
-│   ├── api-client.ts       # Client-side API client (Effect Atom HTTP)
-│   ├── api-handler.ts      # Exposes API + Scalar docs as a Web Handler
-│   ├── utils.ts            # Utility functions (cn, etc.)
-│   └── atoms/
-│       └── tasks.ts        # Effect Atom atoms (queries + optimistic mutations)
-├── components/
-│   ├── ui/                 # Shadcn UI primitives (button, dialog, input, etc.)
-│   ├── data-table/         # Reusable data-table component (TanStack Table)
-│   ├── form/               # Reusable form component (TanStack Form)
-│   └── tasks/              # Task-specific components (dialog, table)
-├── messages/
-│   ├── en.json             # English translations
-│   ├── fr.json             # French translations
-│   └── components/         # Component-scoped translations
-├── paraglide/              # Auto-generated Paraglide runtime (do not edit)
-└── routes/
-    ├── __root.tsx           # Root layout (HTML shell, locale awareness)
-    ├── index.tsx            # Home page (task table + create dialog)
-    └── api/                 # API route handlers
+  app.ts        Fetch request routing and Datastar actions
+  auth.ts       KrakStack Auth sessions, proxy, organizations, and API keys
+  datastar.ts   Escaped HTML and SSE patch helpers
+  messages.ts   English and French messages
+  server.ts     Bun server and Effect runtime boundary
+  styles.css    Plain responsive CSS
+  tasks.ts      Effect SQL task service and schema bootstrap
+  view.ts       Server-rendered page and fragments
 ```
 
-## API Documentation
+Mutation flow:
 
-The Effect HTTP API is served at `/api` with auto-generated docs:
+1. A Datastar attribute sends a form or action request.
+2. `app.ts` validates input with Effect Schema.
+3. `server.ts` runs the operation through the Effect `Tasks` service.
+4. The server responds with `datastar-patch-elements` SSE events.
+5. Datastar morphs the form or task list by element ID.
 
-- **Scalar docs**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
-- **OpenAPI spec**: [http://localhost:3000/api/openapi.json](http://localhost:3000/api/openapi.json)
+## Deliberate Omissions
 
-### Endpoints
+The portal includes protected tasks, profile updates, password changes, API
+keys, organizations, permissions, English/French routes, and persisted light,
+dark, and system themes.
 
-| Method | Path             | Description      |
-| ------ | ---------------- | ---------------- |
-| GET    | `/api/tasks`     | List all tasks   |
-| POST   | `/api/tasks`     | Create a task    |
-| GET    | `/api/tasks/:id` | Get a task by ID |
-| PATCH  | `/api/tasks/:id` | Update a task    |
-| DELETE | `/api/tasks/:id` | Delete a task    |
+This branch removes React, TanStack, KrakStack UI, Drizzle, Vite, Tailwind,
+Paraglide, Vitest, Oxlint, and Oxfmt. Before treating it as a production
+template, add CSRF protection, versioned database migrations, full 2FA
+QR rendering, and browser-level tests.
 
-## Internationalization (i18n)
-
-The app supports **English** and **French** via [Paraglide.js](https://inlang.com/m/gerre34r/library-inlang-paraglideJs) and [inlang](https://inlang.com/).
-
-- Locales are configured in `project.inlang/settings.json`
-- Translation messages live in `src/messages/{locale}.json`
-- URL-based locale detection with patterns like `/en/...` and `/fr/...`
-- API routes (`/api/...`) are excluded from locale routing
-
-The Paraglide runtime in `src/paraglide/` is auto-generated — do not edit it directly.
-
-## Components
-
-Shadcn components are configured in `components.json` using the `base-vega` style. Add new components with:
-
-```bash
-bunx shadcn@latest add <component>
-```
-
-## Building for Production
-
-```bash
-bun --bun run build
-```
-
-The output is written to `dist/`.
-
-## Demo Files
-
-The task CRUD feature serves as a reference implementation. To remove it, delete:
-
-- `src/services/task/`
-- `src/components/tasks/`
-- `src/components/data-table/`
-- `src/lib/atoms/tasks.ts`
-- `src/db/schema.ts` (the `tasks` table)
-- `src/api.ts` (the task endpoints)
-- `src/lib/api-builder.ts`, `src/lib/api-client.ts`, `src/lib/api-handler.ts`
-
-Then update `src/routes/index.tsx` with your own content.
+The Datastar `v1.0.2` browser bundle is vendored at `public/datastar.js` so the
+application has no frontend package or CDN runtime dependency.
