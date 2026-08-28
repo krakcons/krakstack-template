@@ -1,6 +1,7 @@
-import { proxyAuthRequest } from "@krak-stack/auth/server";
+import { proxyAuthRequestEffect } from "@krak-stack/auth/server";
 import { createFileRoute } from "@tanstack/react-router";
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
+import { FetchHttpClient, HttpServerResponse } from "effect/unstable/http";
 
 const AuthUrl = Schema.String.pipe(
   Schema.refine((value): value is string => URL.canParse(value), {
@@ -9,19 +10,29 @@ const AuthUrl = Schema.String.pipe(
 ).annotate({ identifier: "KrakstackAuthUrl" });
 
 const proxyAuth = (request: Request) =>
-  proxyAuthRequest(
+  proxyAuthRequestEffect(
     request,
     Schema.decodeUnknownSync(AuthUrl)(process.env.KRAKSTACK_AUTH_URL),
+  ).pipe(
+    Effect.map((response) =>
+      HttpServerResponse.toWeb(response, {
+        withoutBody: request.method === "HEAD",
+      }),
+    ),
+    Effect.provide(FetchHttpClient.layer),
+    Effect.runPromise,
   );
 
 export const Route = createFileRoute("/api/auth/$")({
   server: {
     handlers: {
       GET: async ({ request }) => proxyAuth(request),
+      HEAD: async ({ request }) => proxyAuth(request),
       POST: async ({ request }) => proxyAuth(request),
       PUT: async ({ request }) => proxyAuth(request),
       PATCH: async ({ request }) => proxyAuth(request),
       DELETE: async ({ request }) => proxyAuth(request),
+      OPTIONS: async ({ request }) => proxyAuth(request),
     },
   },
 });

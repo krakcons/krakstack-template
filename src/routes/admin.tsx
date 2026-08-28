@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 
-import { OrganizationSwitcher, UserButton } from "@krak-stack/auth";
+import { OrganizationSwitcher, UserButton } from "@krak-stack/auth/components";
 
-import { TableSearchSchemaStandard as TableSearchSchema } from "@krak-stack/registry/data-table";
+import { QueryStandard as TableSearchSchema } from "@krak-stack/registry/query";
 import {
   SidebarLayout,
   SidebarPageHeader,
@@ -15,7 +15,7 @@ import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import {
   authCallbackUrl,
-  authClient,
+  getAuthSession,
   authLoginUrl,
 } from "@/services/auth/client";
 import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
@@ -25,21 +25,23 @@ export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,
   ssr: false,
   beforeLoad: async () => {
-    const session = await authClient.getSession();
+    const session = await getAuthSession();
 
-    if (!session.data) {
+    if (!session) {
       throw redirect({
         href: authLoginUrl(authCallbackUrl("/admin"), getLocale()),
       });
     }
 
-    return { session: session.data };
+    return { session };
   },
   component: Admin,
 });
 
 function Admin() {
   const { setTheme, theme } = useTheme();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
 
   return (
     <SidebarLayout
@@ -74,7 +76,12 @@ function Admin() {
           />
         }
       />
-      <TaskTable from="/admin" />
+      <TaskTable
+        state={search}
+        onStateChange={(state) => {
+          void navigate({ replace: true, search: state });
+        }}
+      />
     </SidebarLayout>
   );
 }

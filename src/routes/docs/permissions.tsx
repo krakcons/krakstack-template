@@ -3,39 +3,43 @@ import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 
 import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
 import { ThemeSwitcher, useTheme } from "@krak-stack/registry/theme-switcher";
-import { appDocs } from "@/lib/app-docs";
 import {
   DocsContent,
   DocsFooter,
   DocsHeader,
   DocsLayout,
   DocsPage,
-} from "@/lib/docs";
+} from "@krak-stack/registry/docs";
+import { getAppDocsPages, makeAppDocs } from "@/lib/app-docs";
 import { m } from "@/paraglide/messages";
 import { getLocale } from "@/paraglide/runtime";
 import { Access, AccessLabels } from "@/services/auth/access";
 
 export const Route = createFileRoute("/docs/permissions")({
-  loader: () => {
-    const resolution = appDocs.resolve("permissions", getLocale());
+  loader: async () => {
+    const pages = await getAppDocsPages();
+    const docs = makeAppDocs(pages);
+    const resolution = docs.resolve("permissions", getLocale());
     if (!resolution) throw notFound();
-    return resolution;
+    return { pages, resolution };
   },
   head: ({ loaderData }) => {
-    const locale = loaderData?.page.locale ?? getLocale();
-    return loaderData?.page
-      ? appDocs.getHead({ locale, page: loaderData.page })
-      : appDocs.getHead({ locale });
+    const docs = makeAppDocs(loaderData?.pages ?? []);
+    const locale = loaderData?.resolution.page.locale ?? getLocale();
+    return loaderData?.resolution.page
+      ? docs.getHead({ locale, page: loaderData.resolution.page })
+      : docs.getHead({ locale });
   },
   component: PermissionsPage,
 });
 
 function PermissionsPage() {
-  const resolution = Route.useLoaderData();
+  const { pages, resolution } = Route.useLoaderData();
+  const docs = makeAppDocs(pages);
 
   return (
     <DocsLayout
-      docs={appDocs}
+      docs={docs}
       locale={resolution.page.locale}
       headerActions={
         <>
@@ -46,9 +50,9 @@ function PermissionsPage() {
         </>
       }
     >
-      <DocsPage docs={appDocs} resolution={resolution}>
-        <DocsHeader docs={appDocs} resolution={resolution} />
-        <DocsContent docs={appDocs} resolution={resolution} />
+      <DocsPage docs={docs} resolution={resolution}>
+        <DocsHeader docs={docs} resolution={resolution} />
+        <DocsContent docs={docs} resolution={resolution} />
         <section
           aria-labelledby="permissions-matrix-title"
           className="mt-12 space-y-4 border-t pt-8"
@@ -70,7 +74,7 @@ function PermissionsPage() {
             locale={getLocale()}
           />
         </section>
-        <DocsFooter docs={appDocs} resolution={resolution} />
+        <DocsFooter docs={docs} resolution={resolution} />
       </DocsPage>
     </DocsLayout>
   );

@@ -1,4 +1,4 @@
-import { KrakstackAuthProvider } from "@krak-stack/auth";
+import { KrakstackAuthProvider } from "@krak-stack/auth/components";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 
 import { ThemeProvider, useTheme } from "@krak-stack/registry/theme-switcher";

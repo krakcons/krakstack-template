@@ -5,7 +5,7 @@ import { Schema } from "effect";
 import { AppBrand } from "@krak-stack/registry/app-brand";
 import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
 import { m } from "@/paraglide/messages";
-import { authClient } from "@/services/auth/client";
+import { getAuthSession } from "@/services/auth/client";
 
 const RedirectPath = Schema.String.pipe(
   Schema.refine(
@@ -31,9 +31,9 @@ export const Route = createFileRoute("/_auth")({
   validateSearch: AuthSearchSchema,
   ssr: false,
   beforeLoad: async ({ search }) => {
-    const session = await authClient.getSession();
+    const session = await getAuthSession();
 
-    if (session.data) {
+    if (session) {
       throw redirect({
         href: safeRedirect(search.redirect),
         reloadDocument: true,

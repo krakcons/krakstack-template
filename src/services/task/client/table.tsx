@@ -5,8 +5,8 @@ import { useAtomSet } from "@effect/atom-react";
 
 import {
   DataTable,
-  type DataTableColumnDef,
-  DataTableColumnHeader,
+  type DataTableColDef,
+  type DataTableProps,
 } from "@krak-stack/registry/data-table";
 import {
   AlertDialog,
@@ -36,7 +36,9 @@ const formatDate = (date: Date) =>
     minute: "2-digit",
   }).format(date);
 
-export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
+type TaskTableProps = Pick<DataTableProps<Task>, "onStateChange" | "state">;
+
+export function TaskTable({ onStateChange, state }: TaskTableProps) {
   const tasksResult = useTasksAtom();
   const updateTask = useAtomSet(updateTaskAtom);
   const deleteTask = useAtomSet(deleteTaskAtom);
@@ -48,47 +50,45 @@ export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
     onSuccess: ({ value }) => Array.from(value),
   });
 
-  const columns: DataTableColumnDef<Task>[] = [
+  const columnDefs: DataTableColDef<Task>[] = [
     {
-      accessorKey: "title",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Task" />
-      ),
-      cell: ({ row }) => (
+      field: "title",
+      headerName: "Task",
+      searchable: true,
+      sortable: true,
+      cellRenderer: ({ data }) => (
         <div className="flex min-w-52 flex-col gap-1">
-          <span className="font-medium">{row.original.title}</span>
-          {row.original.description ? (
+          <span className="font-medium">{data.title}</span>
+          {data.description ? (
             <span className="text-muted-foreground line-clamp-2 text-sm">
-              {row.original.description}
+              {data.description}
             </span>
           ) : null}
         </div>
       ),
     },
     {
-      accessorKey: "completed",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
-      ),
-      cell: ({ row }) => (
-        <Badge variant={row.original.completed ? "default" : "secondary"}>
-          {row.original.completed ? (
+      field: "completed",
+      headerName: "Status",
+      sortable: true,
+      cellRenderer: ({ data }) => (
+        <Badge variant={data.completed ? "default" : "secondary"}>
+          {data.completed ? (
             <CheckCircle2 data-icon="inline-start" />
           ) : (
             <Circle data-icon="inline-start" />
           )}
-          {row.original.completed ? "Done" : "Open"}
+          {data.completed ? "Done" : "Open"}
         </Badge>
       ),
     },
     {
-      accessorKey: "updatedAt",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated" />
-      ),
-      cell: ({ row }) => (
+      field: "updatedAt",
+      headerName: "Updated",
+      sortable: true,
+      cellRenderer: ({ data }) => (
         <span className="text-muted-foreground text-sm">
-          {formatDate(row.original.updatedAt)}
+          {formatDate(data.updatedAt)}
         </span>
       ),
     },
@@ -157,13 +157,16 @@ export function TaskTable({ from = "/" }: { from?: "/" | "/admin" }) {
       return (
         <>
           <DataTable
-            columns={columns}
-            data={tasks}
-            exportFileName="tasks.csv"
-            features={{ gallery: false }}
-            from={from}
-            onRowClick={setEditingTask}
-            rowActions={rowActions}
+            columnDefs={columnDefs}
+            rowData={tasks}
+            features={{
+              export: { baseName: "tasks" },
+              gallery: false,
+              rowActions: { items: rowActions },
+            }}
+            onRowClicked={setEditingTask}
+            onStateChange={onStateChange}
+            state={state}
           />
 
           {editingTask ? (

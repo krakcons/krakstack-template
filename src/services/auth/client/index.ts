@@ -1,5 +1,7 @@
-import { createAuthUiClient } from "@krak-stack/auth";
+import { authSessionAtom as makeAuthSessionAtom } from "@krak-stack/auth/components";
 import { createIsomorphicFn } from "@tanstack/react-start";
+import { Effect } from "effect";
+import { AtomRegistry } from "effect/unstable/reactivity";
 
 const appBaseUrl = createIsomorphicFn()
   .server(() => import.meta.env.VITE_SITE_URL)
@@ -27,4 +29,18 @@ export const authCallbackUrl = createIsomorphicFn()
     return `${url.pathname}${url.search}${url.hash}`;
   });
 
-export const authClient = createAuthUiClient(appBaseUrl());
+export const authSessionAtom = makeAuthSessionAtom(appBaseUrl());
+
+export const getAuthSession = async () => {
+  const registry = AtomRegistry.make();
+
+  try {
+    return await Effect.runPromise(
+      AtomRegistry.getResult(registry, authSessionAtom, {
+        suspendOnWaiting: true,
+      }),
+    );
+  } finally {
+    registry.dispose();
+  }
+};
