@@ -20,7 +20,6 @@ import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
 import { Route as Auth2faRouteImport } from './routes/_auth/2fa'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -76,11 +75,6 @@ const Auth2faRoute = Auth2faRouteImport.update({
   path: '/2fa',
   getParentRoute: () => AuthRoute,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,7 +87,6 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,7 +99,6 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,7 +113,6 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
-  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,7 +127,6 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
-    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -149,7 +139,6 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
-    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -163,7 +152,6 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
-    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -173,7 +161,6 @@ export interface RootRouteChildren {
   ApiSplatRoute: typeof ApiSplatRoute
   DocsPermissionsRoute: typeof DocsPermissionsRoute
   DocsChar123SlugChar125Route: typeof DocsChar123SlugChar125Route
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -255,13 +242,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Auth2faRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -290,7 +270,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSplatRoute: ApiSplatRoute,
   DocsPermissionsRoute: DocsPermissionsRoute,
   DocsChar123SlugChar125Route: DocsChar123SlugChar125Route,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
