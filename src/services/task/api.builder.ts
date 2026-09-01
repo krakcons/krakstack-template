@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { actorUserId, withPolicy } from "@krak-stack/auth/access";
 import { HttpApiBuilder, HttpApiError } from "effect/unstable/httpapi";
 
@@ -16,7 +16,7 @@ export const tasksHandler = HttpApiBuilder.group(Api, "tasks", (handlers) =>
         const userId = yield* actorUserId;
 
         return yield* tasks
-          .list({ userId })
+          .find({ userId })
           .pipe(Effect.mapError(internalServerError));
       }).pipe(withPolicy(Access.permission("tasks:read"))),
     )
@@ -25,12 +25,12 @@ export const tasksHandler = HttpApiBuilder.group(Api, "tasks", (handlers) =>
         const tasks = yield* Tasks;
         const userId = yield* actorUserId;
         const task = yield* tasks
-          .get({ userId, id: params.id })
+          .findOne({ userId, id: params.id })
           .pipe(Effect.mapError(internalServerError));
 
-        if (!task) return yield* new HttpApiError.NotFound({});
+        if (Option.isNone(task)) return yield* new HttpApiError.NotFound({});
 
-        return task;
+        return task.value;
       }).pipe(withPolicy(Access.permission("tasks:read"))),
     )
     .handle("createTask", ({ payload }) =>
@@ -41,8 +41,6 @@ export const tasksHandler = HttpApiBuilder.group(Api, "tasks", (handlers) =>
         const task = yield* tasks
           .create({ userId, payload })
           .pipe(Effect.mapError(internalServerError));
-
-        if (!task) return yield* new HttpApiError.InternalServerError({});
 
         return task;
       }).pipe(withPolicy(Access.permission("tasks:create"))),
@@ -56,9 +54,9 @@ export const tasksHandler = HttpApiBuilder.group(Api, "tasks", (handlers) =>
           .update({ userId, id: params.id, payload })
           .pipe(Effect.mapError(internalServerError));
 
-        if (!task) return yield* new HttpApiError.NotFound({});
+        if (Option.isNone(task)) return yield* new HttpApiError.NotFound({});
 
-        return task;
+        return task.value;
       }).pipe(withPolicy(Access.permission("tasks:update"))),
     )
     .handle("deleteTask", ({ params }) =>
@@ -70,9 +68,9 @@ export const tasksHandler = HttpApiBuilder.group(Api, "tasks", (handlers) =>
           .delete({ userId, id: params.id })
           .pipe(Effect.mapError(internalServerError));
 
-        if (!task) return yield* new HttpApiError.NotFound({});
+        if (Option.isNone(task)) return yield* new HttpApiError.NotFound({});
 
-        return task;
+        return task.value;
       }).pipe(withPolicy(Access.permission("tasks:delete"))),
     ),
 );

@@ -1,5 +1,5 @@
 import { PgClient } from "@effect/sql-pg";
-import { Config, Effect, Layer, String } from "effect";
+import { Config, Effect, Layer, Option, String } from "effect";
 import { beforeAll, beforeEach, describe, expect, it } from "@effect/vitest";
 import { SqlClient } from "effect/unstable/sql";
 
@@ -36,9 +36,7 @@ describe("Tasks", () => {
         payload: { title: "Other user's task" },
       });
 
-      if (!created) throw new Error("Expected task to be created");
-
-      const listed = yield* tasks.list({ userId: "user-a" });
+      const listed = yield* tasks.find({ userId: "user-a" });
 
       expect(created.title).toBe("Write tests");
       expect(created.description).toBe("Add service tests");
@@ -56,8 +54,6 @@ describe("Tasks", () => {
         payload: { title: "Original title" },
       });
 
-      if (!created) throw new Error("Expected task to be created");
-
       const updatedByOtherUser = yield* tasks.update({
         userId: "user-b",
         id: created.id,
@@ -69,9 +65,9 @@ describe("Tasks", () => {
         payload: { title: "Updated title", completed: true },
       });
 
-      expect(updatedByOtherUser).toBeUndefined();
-      expect(updatedByOwner?.title).toBe("Updated title");
-      expect(updatedByOwner?.completed).toBe(true);
+      expect(Option.isNone(updatedByOtherUser)).toBe(true);
+      expect(Option.getOrThrow(updatedByOwner).title).toBe("Updated title");
+      expect(Option.getOrThrow(updatedByOwner).completed).toBe(true);
     }).pipe(Effect.provide(tasksLayer)),
   );
 
@@ -83,13 +79,11 @@ describe("Tasks", () => {
         payload: { title: "Delete me" },
       });
 
-      if (!created) throw new Error("Expected task to be created");
-
       const deletedByOtherUser = yield* tasks.delete({
         userId: "user-b",
         id: created.id,
       });
-      const afterOtherUserDelete = yield* tasks.get({
+      const afterOtherUserDelete = yield* tasks.findOne({
         userId: "user-a",
         id: created.id,
       });
@@ -97,15 +91,15 @@ describe("Tasks", () => {
         userId: "user-a",
         id: created.id,
       });
-      const afterOwnerDelete = yield* tasks.get({
+      const afterOwnerDelete = yield* tasks.findOne({
         userId: "user-a",
         id: created.id,
       });
 
-      expect(deletedByOtherUser).toBeUndefined();
-      expect(afterOtherUserDelete?.id).toBe(created.id);
-      expect(deletedByOwner?.id).toBe(created.id);
-      expect(afterOwnerDelete).toBeUndefined();
+      expect(Option.isNone(deletedByOtherUser)).toBe(true);
+      expect(Option.getOrThrow(afterOtherUserDelete).id).toBe(created.id);
+      expect(Option.getOrThrow(deletedByOwner).id).toBe(created.id);
+      expect(Option.isNone(afterOwnerDelete)).toBe(true);
     }).pipe(Effect.provide(tasksLayer)),
   );
 });

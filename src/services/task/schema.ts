@@ -55,4 +55,24 @@ export const TaskIdParamsSchema = Schema.Struct({ id: Schema.String }).annotate(
   },
 );
 
+export const TaskOwnerSchema = Schema.Struct({
+  userId: Schema.String,
+}).annotate({ identifier: "TaskOwner" });
+
+export const OwnedTaskSchema = Schema.Struct({
+  id: Schema.String,
+  userId: Schema.String,
+}).annotate({ identifier: "OwnedTask" });
+
+export const OwnedTaskCreateSchema = Schema.Struct({
+  userId: Schema.String,
+  payload: CreateTaskSchema,
+}).annotate({ identifier: "OwnedTaskCreate" });
+
+export const OwnedTaskUpdateSchema = Schema.Struct({
+  id: Schema.String,
+  userId: Schema.String,
+  payload: UpdateTaskSchema,
+}).annotate({ identifier: "OwnedTaskUpdate" });
+
 export const TaskSchemaStandard = Schema.toStandardSchemaV1(TaskSchema);
