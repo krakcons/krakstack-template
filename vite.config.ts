@@ -15,7 +15,6 @@ const config = defineConfig({
   },
   optimizeDeps: {
     exclude: ["@krak-stack/auth"],
-    include: ["react-qr-code"],
   },
   ssr: {
     noExternal: ["@krak-stack/auth"],

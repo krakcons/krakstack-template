@@ -9,60 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slug}'
-import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
-import { Route as ApiSplatRouteImport } from './routes/api/$'
-import { Route as AuthVerifyEmailRouteImport } from './routes/_auth/verify-email'
-import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
-import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
-import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as Auth2faRouteImport } from './routes/_auth/2fa'
+import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
+import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthVerifyEmailRouteImport } from './routes/_auth/verify-email'
+import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
+import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slug}'
 
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsChar123SlugChar125Route = DocsChar123SlugChar125RouteImport.update({
-  id: '/docs/{-$slug}',
-  path: '/docs/{-$slug}',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsPermissionsRoute = DocsPermissionsRouteImport.update({
-  id: '/docs/permissions',
-  path: '/docs/permissions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSplatRoute = ApiSplatRouteImport.update({
-  id: '/api/$',
-  path: '/api/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthSignInRoute = AuthSignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const Auth2faRoute = Auth2faRouteImport.update({
+  id: '/2fa',
+  path: '/2fa',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthAuthRoute = AuthAuthRouteImport.update({
@@ -70,10 +45,35 @@ const AuthAuthRoute = AuthAuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => AuthRoute,
 } as any)
-const Auth2faRoute = Auth2faRouteImport.update({
-  id: '/2fa',
-  path: '/2fa',
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => AuthRoute,
+} as any)
+const AuthSignInRoute = AuthSignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => AuthRoute,
+} as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsPermissionsRoute = DocsPermissionsRouteImport.update({
+  id: '/docs/permissions',
+  path: '/docs/permissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsChar123SlugChar125Route = DocsChar123SlugChar125RouteImport.update({
+  id: '/docs/{-$slug}',
+  path: '/docs/{-$slug}',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -165,11 +165,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -179,53 +179,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/docs/{-$slug}': {
-      id: '/docs/{-$slug}'
-      path: '/docs/{-$slug}'
-      fullPath: '/docs/{-$slug}'
-      preLoaderRoute: typeof DocsChar123SlugChar125RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs/permissions': {
-      id: '/docs/permissions'
-      path: '/docs/permissions'
-      fullPath: '/docs/permissions'
-      preLoaderRoute: typeof DocsPermissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/$': {
-      id: '/api/$'
-      path: '/api/$'
-      fullPath: '/api/$'
-      preLoaderRoute: typeof ApiSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth/verify-email': {
-      id: '/_auth/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof AuthVerifyEmailRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/sign-in': {
-      id: '/_auth/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof AuthSignInRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/reset-password': {
-      id: '/_auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
+    '/_auth/2fa': {
+      id: '/_auth/2fa'
+      path: '/2fa'
+      fullPath: '/2fa'
+      preLoaderRoute: typeof Auth2faRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/auth': {
@@ -235,12 +200,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAuthRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/2fa': {
-      id: '/_auth/2fa'
-      path: '/2fa'
-      fullPath: '/2fa'
-      preLoaderRoute: typeof Auth2faRouteImport
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/_auth/sign-in': {
+      id: '/_auth/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/verify-email': {
+      id: '/_auth/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/permissions': {
+      id: '/docs/permissions'
+      path: '/docs/permissions'
+      fullPath: '/docs/permissions'
+      preLoaderRoute: typeof DocsPermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/{-$slug}': {
+      id: '/docs/{-$slug}'
+      path: '/docs/{-$slug}'
+      fullPath: '/docs/{-$slug}'
+      preLoaderRoute: typeof DocsChar123SlugChar125RouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }

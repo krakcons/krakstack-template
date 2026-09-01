@@ -1,24 +1,30 @@
-import { and, eq } from "drizzle-orm";
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, Schema } from "effect";
+import { SqlClient } from "effect/unstable/sql";
 
-import { tasks } from "@/db/schema";
-import { DB } from "@/services/database";
-import { CreateTaskSchema, UpdateTaskSchema } from "@/services/task/schema";
+import {
+  CreateTaskSchema,
+  TaskSchema,
+  UpdateTaskSchema,
+} from "@/services/task/schema";
+
+const decodeTasks = Schema.decodeUnknownEffect(Schema.Array(TaskSchema));
 
 export class Tasks extends Context.Service<Tasks>()("Tasks", {
   make: Effect.gen(function* () {
-    const db = yield* DB;
+    const sql = yield* SqlClient.SqlClient;
 
     const list = Effect.fn("Tasks.list")(function* ({
       userId,
     }: {
       userId: string;
     }) {
-      const tasks = yield* db.query.tasks.findMany({
-        where: {
-          userId,
-        },
-      });
+      const rows = yield* sql`
+        SELECT id, user_id, title, description, completed, created_at, updated_at
+        FROM tasks
+        WHERE user_id = ${userId}
+        ORDER BY created_at
+      `;
+      const tasks = yield* decodeTasks(rows);
 
       return tasks;
     });
@@ -30,12 +36,13 @@ export class Tasks extends Context.Service<Tasks>()("Tasks", {
       userId: string;
       id: string;
     }) {
-      const task = yield* db.query.tasks.findFirst({
-        where: {
-          id,
-          userId,
-        },
-      });
+      const rows = yield* sql`
+        SELECT id, user_id, title, description, completed, created_at, updated_at
+        FROM tasks
+        WHERE id = ${id} AND user_id = ${userId}
+        LIMIT 1
+      `;
+      const [task] = yield* decodeTasks(rows);
 
       return task;
     });
@@ -47,10 +54,12 @@ export class Tasks extends Context.Service<Tasks>()("Tasks", {
       userId: string;
       payload: typeof CreateTaskSchema.Type;
     }) {
-      const [task] = yield* db
-        .insert(tasks)
-        .values({ ...payload, userId })
-        .returning();
+      const rows = yield* sql`
+        INSERT INTO tasks (user_id, title, description)
+        VALUES (${userId}, ${payload.title}, ${payload.description ?? null})
+        RETURNING id, user_id, title, description, completed, created_at, updated_at
+      `;
+      const [task] = yield* decodeTasks(rows);
 
       if (!task) return undefined;
 
@@ -66,11 +75,13 @@ export class Tasks extends Context.Service<Tasks>()("Tasks", {
       id: string;
       payload: typeof UpdateTaskSchema.Type;
     }) {
-      const [task] = yield* db
-        .update(tasks)
-        .set({ ...payload, updatedAt: new Date() })
-        .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
-        .returning();
+      const rows = yield* sql`
+        UPDATE tasks
+        SET ${sql.update({ ...payload, updatedAt: new Date() })}
+        WHERE id = ${id} AND user_id = ${userId}
+        RETURNING id, user_id, title, description, completed, created_at, updated_at
+      `;
+      const [task] = yield* decodeTasks(rows);
 
       if (!task) return undefined;
 
@@ -84,10 +95,12 @@ export class Tasks extends Context.Service<Tasks>()("Tasks", {
       userId: string;
       id: string;
     }) {
-      const [task] = yield* db
-        .delete(tasks)
-        .where(and(eq(tasks.id, id), eq(tasks.userId, userId)))
-        .returning();
+      const rows = yield* sql`
+        DELETE FROM tasks
+        WHERE id = ${id} AND user_id = ${userId}
+        RETURNING id, user_id, title, description, completed, created_at, updated_at
+      `;
+      const [task] = yield* decodeTasks(rows);
 
       if (!task) return undefined;
 
@@ -105,7 +118,5 @@ export class Tasks extends Context.Service<Tasks>()("Tasks", {
 }) {
   static readonly baseLayer = Layer.effect(this, this.make);
 
-  static readonly layer = this.baseLayer.pipe(Layer.provide(DB.layer));
-
-  static readonly testLayer = this.baseLayer.pipe(Layer.provide(DB.testLayer));
+  static readonly layer = this.baseLayer;
 }

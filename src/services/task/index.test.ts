@@ -1,23 +1,25 @@
-import { migrate } from "drizzle-orm/effect-postgres/migrator";
-import { Effect } from "effect";
+import { PgClient } from "@effect/sql-pg";
+import { Config, Effect, Layer, String } from "effect";
 import { beforeAll, beforeEach, describe, expect, it } from "@effect/vitest";
+import { SqlClient } from "effect/unstable/sql";
 
-import { tasks as tasksTable } from "@/db/schema";
-import { DB } from "@/services/database";
+import { migrate } from "@/db/migrate";
 
 import { Tasks } from "./index";
 
-const migrateTestDb = Effect.gen(function* () {
-  const db = yield* DB;
-  yield* migrate(db, { migrationsFolder: "./drizzle" });
-}).pipe(Effect.provide(DB.testLayer));
+const databaseLayer = PgClient.layerConfig({
+  url: Config.redacted("TEST_DATABASE_URL"),
+  transformQueryNames: Config.succeed(String.camelToSnake),
+  transformResultNames: Config.succeed(String.snakeToCamel),
+});
+const tasksLayer = Tasks.layer.pipe(Layer.provide(databaseLayer));
 
 const resetTestDb = Effect.gen(function* () {
-  const db = yield* DB;
-  yield* db.delete(tasksTable);
-}).pipe(Effect.provide(DB.testLayer));
+  const sql = yield* SqlClient.SqlClient;
+  yield* sql`DELETE FROM tasks`;
+}).pipe(Effect.provide(databaseLayer));
 
-beforeAll(() => Effect.runPromise(migrateTestDb));
+beforeAll(() => Effect.runPromise(migrate.pipe(Effect.provide(databaseLayer))));
 beforeEach(() => Effect.runPromise(resetTestDb));
 
 describe("Tasks", () => {
@@ -43,7 +45,7 @@ describe("Tasks", () => {
       expect(listed).toHaveLength(1);
       expect(listed[0]?.id).toBe(created.id);
       expect(listed[0]?.userId).toBe("user-a");
-    }).pipe(Effect.provide(Tasks.testLayer)),
+    }).pipe(Effect.provide(tasksLayer)),
   );
 
   it.effect("updates only the owning user's task", () =>
@@ -70,7 +72,7 @@ describe("Tasks", () => {
       expect(updatedByOtherUser).toBeUndefined();
       expect(updatedByOwner?.title).toBe("Updated title");
       expect(updatedByOwner?.completed).toBe(true);
-    }).pipe(Effect.provide(Tasks.testLayer)),
+    }).pipe(Effect.provide(tasksLayer)),
   );
 
   it.effect("deletes only the owning user's task", () =>
@@ -104,6 +106,6 @@ describe("Tasks", () => {
       expect(afterOtherUserDelete?.id).toBe(created.id);
       expect(deletedByOwner?.id).toBe(created.id);
       expect(afterOwnerDelete).toBeUndefined();
-    }).pipe(Effect.provide(Tasks.testLayer)),
+    }).pipe(Effect.provide(tasksLayer)),
   );
 });
