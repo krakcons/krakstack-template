@@ -26,7 +26,7 @@
     "@effect/platform-browser": "4.0.0-rc.112",
     "@effect/platform-bun": "4.0.0-rc.112",
     "@effect/sql-pg": "4.0.0-rc.112",
-    "@krak-stack/auth": "0.2.7",
+    "@krak-stack/auth": "0.2.9",
     "@krak-stack/registry": "0.1.27",
     "@lucas-barake/effect-form-react": "0.26.0-beta.5",
     "@tanstack/highlight": "^0.0.10",
