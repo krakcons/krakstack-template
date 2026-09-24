@@ -7,6 +7,7 @@ import {
   DataTable,
   type DataTableColDef,
   type DataTableProps,
+  type DataTableRowAction,
 } from "@krak-stack/registry/data-table";
 import {
   AlertDialog,
@@ -19,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { m } from "@/paraglide/messages";
 
 import { TaskDialog } from "./form";
 import {
@@ -27,14 +29,6 @@ import {
   useTasksAtom,
   type Task,
 } from "./atom";
-
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 
 type TaskTableProps = Pick<DataTableProps<Task>, "onStateChange" | "state">;
 
@@ -49,11 +43,16 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
     onFailure: () => [],
     onSuccess: ({ value }) => Array.from(value),
   });
+  const status = AsyncResult.match(tasksResult, {
+    onInitial: () => ({ loading: true }),
+    onFailure: () => ({ error: m.tasks_load_error() }),
+    onSuccess: () => ({}),
+  });
 
   const columnDefs: DataTableColDef<Task>[] = [
     {
       field: "title",
-      headerName: "Task",
+      headerName: m.tasks_table_task(),
       searchable: true,
       sortable: true,
       cellRenderer: ({ data }) => (
@@ -69,7 +68,7 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
     },
     {
       field: "completed",
-      headerName: "Status",
+      headerName: m.tasks_table_status(),
       sortable: true,
       cellRenderer: ({ data }) => (
         <Badge variant={data.completed ? "default" : "secondary"}>
@@ -78,30 +77,26 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
           ) : (
             <Circle data-icon="inline-start" />
           )}
-          {data.completed ? "Done" : "Open"}
+          {data.completed ? m.tasks_status_done() : m.tasks_status_open()}
         </Badge>
       ),
     },
     {
       field: "updatedAt",
-      headerName: "Updated",
+      headerName: m.tasks_table_updated(),
       sortable: true,
-      cellRenderer: ({ data }) => (
-        <span className="text-muted-foreground text-sm">
-          {formatDate(data.updatedAt)}
-        </span>
-      ),
+      type: "dateTime",
     },
   ];
 
-  const rowActions = [
+  const rowActions: DataTableRowAction<Task>[] = [
     {
-      name: "Edit",
+      name: m.tasks_action_edit(),
       icon: <Pencil />,
       onClick: setEditingTask,
     },
     {
-      name: "Complete",
+      name: m.tasks_action_complete(),
       icon: <CheckCircle2 />,
       visible: (task: Task) => !task.completed,
       onClick: (task: Task) => {
@@ -113,7 +108,7 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
       },
     },
     {
-      name: "Reopen",
+      name: m.tasks_action_reopen(),
       icon: <RotateCcw />,
       visible: (task: Task) => task.completed,
       onClick: (task: Task) => {
@@ -125,9 +120,9 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
       },
     },
     {
-      name: "Delete",
+      name: m.tasks_action_delete(),
       icon: <Trash2 />,
-      variant: "destructive" as const,
+      variant: "destructive",
       onClick: setDeletingTask,
     },
   ];
@@ -142,68 +137,54 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
     setDeletingTask(null);
   };
 
-  return AsyncResult.match(tasksResult, {
-    onInitial: () => (
-      <div className="bg-card text-muted-foreground rounded-xl border p-6">
-        Loading tasks...
-      </div>
-    ),
-    onFailure: () => (
-      <div className="bg-card text-destructive rounded-xl border p-6">
-        Unable to load tasks.
-      </div>
-    ),
-    onSuccess: () => {
-      return (
-        <>
-          <DataTable
-            columnDefs={columnDefs}
-            rowData={tasks}
-            features={{
-              export: { baseName: "tasks" },
-              gallery: false,
-              rowActions: { items: rowActions },
-            }}
-            onRowClicked={setEditingTask}
-            onStateChange={onStateChange}
-            state={state}
-          />
+  return (
+    <>
+      <DataTable
+        columnDefs={columnDefs}
+        rowData={tasks}
+        getRowId={(task) => task.id}
+        status={status}
+        features={{
+          export: { baseName: "tasks" },
+          gallery: false,
+          rowActions: { items: rowActions },
+        }}
+        onRowClicked={setEditingTask}
+        onStateChange={onStateChange}
+        state={state}
+      />
 
-          {editingTask ? (
-            <TaskDialog
-              task={editingTask}
-              open
-              onOpenChange={(open) => {
-                if (!open) setEditingTask(null);
-              }}
-            />
-          ) : null}
+      {editingTask ? (
+        <TaskDialog
+          task={editingTask}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditingTask(null);
+          }}
+        />
+      ) : null}
 
-          <AlertDialog
-            open={Boolean(deletingTask)}
-            onOpenChange={(open) => !open && setDeletingTask(null)}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete task?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete{" "}
-                  {deletingTask ? `"${deletingTask.title}"` : "this task"}.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  onClick={confirmDelete}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      );
-    },
-  });
+      <AlertDialog
+        open={Boolean(deletingTask)}
+        onOpenChange={(open) => !open && setDeletingTask(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{m.tasks_delete_title()}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletingTask
+                ? m.tasks_delete_description({ title: deletingTask.title })
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{m.tasks_cancel()}</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
+              {m.tasks_action_delete()}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 }

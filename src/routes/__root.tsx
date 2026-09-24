@@ -1,8 +1,10 @@
 import { KrakstackAuthProvider } from "@krak-stack/auth/components";
+import { useAtomValue } from "@effect/atom-react";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 
 import { ThemeProvider, useTheme } from "@krak-stack/registry/theme-switcher";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ApiClient } from "@/lib/api-client";
 import { m } from "../paraglide/messages.js";
 import { getLocale } from "../paraglide/runtime.js";
 import { Access, AccessLabels } from "@/services/auth/access";
@@ -64,6 +66,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  useAtomValue(ApiClient.runtime);
   const { systemTheme, theme } = useTheme();
   const locale = getLocale().startsWith("fr") ? "fr" : "en";
 
