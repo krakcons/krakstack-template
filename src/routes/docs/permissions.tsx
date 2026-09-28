@@ -1,8 +1,8 @@
 import { ProjectAccessMatrix } from "@krak-stack/auth/access/matrix";
 import { ClientOnly, createFileRoute, notFound } from "@tanstack/react-router";
 
-import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
-import { ThemeSwitcher, useTheme } from "@krak-stack/registry/theme-switcher";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeSwitcher, useTheme } from "@/components/theme-switcher";
 import {
   DocsContent,
   DocsFooter,
@@ -68,11 +68,7 @@ function PermissionsPage() {
               {m.docs_permissions_matrix_description()}
             </p>
           </div>
-          <ProjectAccessMatrix
-            access={Access}
-            labels={AccessLabels}
-            locale={getLocale()}
-          />
+          <ProjectAccessMatrix access={Access} labels={AccessLabels} />
         </section>
         <DocsFooter docs={docs} resolution={resolution} />
       </DocsPage>

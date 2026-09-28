@@ -18,8 +18,8 @@ import {
   getAuthSession,
   authLoginUrl,
 } from "@/services/auth/client";
-import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
-import { ThemeSwitcher, useTheme } from "@krak-stack/registry/theme-switcher";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeSwitcher, useTheme } from "@/components/theme-switcher";
 
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,

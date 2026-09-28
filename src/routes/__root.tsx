@@ -1,12 +1,13 @@
 import { KrakstackAuthProvider } from "@krak-stack/auth/components";
+import { KrakstackProvider } from "@krak-stack/registry/krakstack-provider";
 import { useAtomValue } from "@effect/atom-react";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 
-import { ThemeProvider, useTheme } from "@krak-stack/registry/theme-switcher";
+import { ThemeProvider, useTheme } from "@/components/theme-switcher";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ApiClient } from "@/lib/api-client";
 import { m } from "../paraglide/messages.js";
-import { getLocale } from "../paraglide/runtime.js";
+import { getLocale, locales } from "../paraglide/runtime.js";
 import { Access, AccessLabels } from "@/services/auth/access";
 import appCss from "../styles.css?url";
 
@@ -59,16 +60,17 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider>
-      <RootDocument>{children}</RootDocument>
-    </ThemeProvider>
+    <KrakstackProvider locale={getLocale()} locales={locales}>
+      <ThemeProvider>
+        <RootDocument>{children}</RootDocument>
+      </ThemeProvider>
+    </KrakstackProvider>
   );
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   useAtomValue(ApiClient.runtime);
   const { systemTheme, theme } = useTheme();
-  const locale = getLocale().startsWith("fr") ? "fr" : "en";
 
   return (
     <html
@@ -84,7 +86,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <KrakstackAuthProvider
             access={Access}
             accessLabels={AccessLabels}
-            locale={locale}
             projectId={import.meta.env.VITE_KRAKSTACK_AUTH_PROJECT_ID}
           >
             {children}

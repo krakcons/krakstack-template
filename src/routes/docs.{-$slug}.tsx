@@ -5,8 +5,8 @@ import {
   redirect,
 } from "@tanstack/react-router";
 
-import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
-import { ThemeSwitcher, useTheme } from "@krak-stack/registry/theme-switcher";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeSwitcher, useTheme } from "@/components/theme-switcher";
 import { DocsLayout, DocsNotFound, DocsPage } from "@krak-stack/registry/docs";
 import { appDocsShell, getAppDocsPages, makeAppDocs } from "@/lib/app-docs";
 import { getLocale } from "@/paraglide/runtime";

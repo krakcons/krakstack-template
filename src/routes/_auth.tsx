@@ -1,9 +1,11 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { LayoutDashboard } from "lucide-react";
 import { Schema } from "effect";
+import { KrakstackAuthRequired } from "@krak-stack/auth/components";
 
 import { AppBrand } from "@krak-stack/registry/app-brand";
-import { LocaleSwitcher } from "@krak-stack/registry/locale-switcher";
+import { Loading } from "@krak-stack/registry/loading";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { m } from "@/paraglide/messages";
 import { getAuthSession } from "@/services/auth/client";
 
@@ -45,20 +47,22 @@ export const Route = createFileRoute("/_auth")({
 
 function AuthLayout() {
   return (
-    <main className="bg-muted/30 relative flex min-h-svh items-center justify-center px-4 py-24">
-      <AppBrand
-        className="absolute top-5 left-5 sm:top-7 sm:left-7"
-        label={m.home_brand()}
-        subtitle={m.app_name()}
-        icon={LayoutDashboard}
-        to="/"
-      />
-      <div className="absolute top-5 right-5 sm:top-7 sm:right-7">
-        <LocaleSwitcher />
-      </div>
-      <div className="w-full max-w-md">
-        <Outlet />
-      </div>
-    </main>
+    <KrakstackAuthRequired fallback={<Loading variant="centered" />}>
+      <main className="bg-muted/30 relative flex min-h-svh items-center justify-center px-4 py-24">
+        <AppBrand
+          className="absolute top-5 left-5 sm:top-7 sm:left-7"
+          label={m.home_brand()}
+          subtitle={m.app_name()}
+          icon={LayoutDashboard}
+          to="/"
+        />
+        <div className="absolute top-5 right-5 sm:top-7 sm:right-7">
+          <LocaleSwitcher />
+        </div>
+        <div className="w-full max-w-md">
+          <Outlet />
+        </div>
+      </main>
+    </KrakstackAuthRequired>
   );
 }
