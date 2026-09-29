@@ -54,7 +54,6 @@ const makeTaskForm = (task?: Task | null) =>
       description: TextAreaField,
     },
     mode: { validation: "onSubmit" },
-    reactivityKeys: ["tasks"],
     onSubmit: (_, { decoded, get }) => {
       const title = decoded.title.trim();
       const description = decoded.description.trim();
@@ -63,9 +62,11 @@ const makeTaskForm = (task?: Task | null) =>
         ? get.setResult(updateTaskAtom, {
             params: { id: task.id },
             payload: { title, description: description || null },
+            reactivityKeys: ["tasks"],
           })
         : get.setResult(createTaskAtom, {
             payload: { title, description: description || undefined },
+            reactivityKeys: ["tasks"],
           });
     },
   });
