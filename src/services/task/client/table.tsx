@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AsyncResult } from "effect/unstable/reactivity";
+import { AsyncResult } from "effect/reactivity";
 import { CheckCircle2, Circle, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useAtomSet } from "@effect/atom-react";
 

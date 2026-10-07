@@ -1,14 +1,14 @@
 import { PgClient } from "@effect/sql-pg";
 import { Config, Effect, Layer, Option, String } from "effect";
 import { beforeAll, beforeEach, describe, expect, it } from "@effect/vitest";
-import { SqlClient } from "effect/unstable/sql";
+import { SqlClient } from "effect/sql";
 
 import { migrate } from "@/db/migrate";
 
 import { Tasks } from "./index";
 
 const databaseLayer = PgClient.layerConfig({
-  url: Config.redacted("TEST_DATABASE_URL"),
+  url: Config.Redacted("TEST_DATABASE_URL"),
   transformQueryNames: Config.succeed(String.camelToSnake),
   transformResultNames: Config.succeed(String.snakeToCamel),
 });

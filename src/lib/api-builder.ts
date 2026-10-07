@@ -1,6 +1,6 @@
 import { PgClient } from "@effect/sql-pg";
 import { Config, Effect, Layer, Schema, String } from "effect";
-import { HttpApiBuilder } from "effect/unstable/httpapi";
+import { HttpApiBuilder } from "effect/http-api";
 import {
   ActorRequired,
   AuthMiddleware,
@@ -10,8 +10,8 @@ import {
   healthHandler,
   HealthService,
 } from "@krak-stack/registry/service-health";
-import { FetchHttpClient, HttpRouter } from "effect/unstable/http";
-import { SqlClient } from "effect/unstable/sql";
+import { FetchHttpClient, HttpRouter } from "effect/http";
+import { SqlClient } from "effect/sql";
 
 import { Api } from "@/api";
 import { migrate } from "@/db/migrate";
@@ -34,7 +34,7 @@ const authProxyLayer = HttpRouter.add(
 ).pipe(HttpRouter.provideRequest(FetchHttpClient.layer));
 
 const databaseLayer = PgClient.layerConfig({
-  url: Config.redacted("DATABASE_URL"),
+  url: Config.Redacted("DATABASE_URL"),
   transformQueryNames: Config.succeed(String.camelToSnake),
   transformResultNames: Config.succeed(String.snakeToCamel),
 });

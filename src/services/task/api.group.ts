@@ -1,10 +1,6 @@
 import { Schema } from "effect";
-import {
-  HttpApiEndpoint,
-  HttpApiError,
-  HttpApiGroup,
-} from "effect/unstable/httpapi";
-import { OpenApi } from "effect/unstable/httpapi";
+import { HttpApiEndpoint, HttpApiError, HttpApiGroup } from "effect/http-api";
+import { OpenApi } from "effect/http-api";
 
 import { ActorRequired, Forbidden } from "@krak-stack/auth/server";
 

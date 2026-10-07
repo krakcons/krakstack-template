@@ -1,4 +1,4 @@
-import { HttpApi, OpenApi } from "effect/unstable/httpapi";
+import { HttpApi, OpenApi } from "effect/http-api";
 import { AuthMiddleware } from "@krak-stack/auth/server";
 import { HealthApiGroup } from "@krak-stack/registry/service-health";
 

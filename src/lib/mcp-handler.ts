@@ -1,9 +1,5 @@
 import { Config, Effect, Layer } from "effect";
-import {
-  FetchHttpClient,
-  HttpRouter,
-  HttpServerRequest,
-} from "effect/unstable/http";
+import { FetchHttpClient, HttpRouter, HttpServerRequest } from "effect/http";
 import { ApiClient } from "@krak-stack/registry/httpapi/client";
 import { HttpApiSpec } from "@krak-stack/registry/httpapi/helpers";
 import {
@@ -16,7 +12,7 @@ import { Api } from "@/api";
 import { authClientLayer, CurrentApiKey } from "@/services/auth/client/layer";
 
 const apiClientLayer = Layer.unwrap(
-  Effect.map(Config.url("VITE_SITE_URL"), (baseUrl) =>
+  Effect.map(Config.URL("VITE_SITE_URL"), (baseUrl) =>
     ApiClient.layer({ api: Api, baseUrl: baseUrl.toString() }).pipe(
       Layer.provide(
         authClientLayer().pipe(Layer.provide(FetchHttpClient.layer)),

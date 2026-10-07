@@ -1,7 +1,7 @@
 import { authSessionAtom as makeAuthSessionAtom } from "@krak-stack/auth/components";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { Effect } from "effect";
-import { AtomRegistry } from "effect/unstable/reactivity";
+import { AtomRegistry } from "effect/reactivity";
 
 const appBaseUrl = createIsomorphicFn()
   .server(() => import.meta.env.VITE_SITE_URL)

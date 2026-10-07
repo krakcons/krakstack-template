@@ -1,6 +1,6 @@
 import { Effect, Option } from "effect";
 import { actorUserId, withPolicy } from "@krak-stack/auth/access";
-import { HttpApiBuilder, HttpApiError } from "effect/unstable/httpapi";
+import { HttpApiBuilder, HttpApiError } from "effect/http-api";
 
 import { Api } from "@/api";
 import { Access } from "@/services/auth/access";

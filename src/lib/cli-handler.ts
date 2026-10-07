@@ -1,5 +1,5 @@
 import { Config, Effect, Layer, Option } from "effect";
-import { FetchHttpClient } from "effect/unstable/http";
+import { FetchHttpClient } from "effect/http";
 import { HttpApiCli, runHttpApiCli } from "@krak-stack/registry/httpapi/cli";
 import { ApiClient } from "@krak-stack/registry/httpapi/client";
 import { HttpApiSpec } from "@krak-stack/registry/httpapi/helpers";
@@ -9,9 +9,9 @@ import { authClientLayer } from "@/services/auth/client/layer";
 
 const apiClientLayer = Layer.unwrap(
   Effect.gen(function* () {
-    const baseUrl = yield* Config.url("VITE_SITE_URL");
+    const baseUrl = yield* Config.URL("VITE_SITE_URL");
     const apiKey = yield* Config.option(
-      Config.nonEmptyString("KRAKSTACK_TEMPLATE_API_KEY"),
+      Config.NonEmptyString("KRAKSTACK_TEMPLATE_API_KEY"),
     );
 
     return ApiClient.layer({
