@@ -32,8 +32,8 @@ const safeRedirect = (value: string | undefined) =>
 export const Route = createFileRoute("/_auth")({
   validateSearch: AuthSearchSchema,
   ssr: false,
-  beforeLoad: async ({ search }) => {
-    const session = await getAuthSession();
+  beforeLoad: async ({ search, context }) => {
+    const session = await getAuthSession(context.registry);
 
     if (session) {
       throw redirect({

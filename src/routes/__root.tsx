@@ -1,7 +1,12 @@
 import { KrakstackAuthProvider } from "@krak-stack/auth/components";
 import { KrakstackProvider } from "@krak-stack/registry/krakstack-provider";
 import { useAtomValue } from "@effect/atom-react";
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
+import type { AtomRegistry } from "effect/reactivity";
 
 import { ThemeProvider, useTheme } from "@/components/theme-switcher";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +18,9 @@ import appCss from "../styles.css?url";
 
 const analyticsWebsiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  registry: AtomRegistry.AtomRegistry;
+}>()({
   head: () => ({
     meta: [
       {

@@ -31,16 +31,5 @@ export const authCallbackUrl = createIsomorphicFn()
 
 export const authSessionAtom = makeAuthSessionAtom(appBaseUrl());
 
-export const getAuthSession = async () => {
-  const registry = AtomRegistry.make();
-
-  try {
-    return await Effect.runPromise(
-      AtomRegistry.getResult(registry, authSessionAtom, {
-        suspendOnWaiting: true,
-      }),
-    );
-  } finally {
-    registry.dispose();
-  }
-};
+export const getAuthSession = (registry: AtomRegistry.AtomRegistry) =>
+  Effect.runPromise(AtomRegistry.getResult(registry, authSessionAtom));

@@ -24,8 +24,8 @@ import { ThemeSwitcher, useTheme } from "@/components/theme-switcher";
 export const Route = createFileRoute("/admin")({
   validateSearch: TableSearchSchema,
   ssr: false,
-  beforeLoad: async () => {
-    const session = await getAuthSession();
+  beforeLoad: async ({ context }) => {
+    const session = await getAuthSession(context.registry);
 
     if (!session) {
       throw redirect({
