@@ -70,7 +70,7 @@ bun --bun run dev
 | `bun --bun run preview` | Preview production build           |
 | `bun run lint`          | Run Oxlint                         |
 | `bun run fmt`           | Run Oxfmt                          |
-| `bun run type:check`    | Run TypeScript type checking       |
+| `bun check`             | Run TypeScript type checking       |
 
 ## Database
 

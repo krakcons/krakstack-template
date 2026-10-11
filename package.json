@@ -14,7 +14,6 @@
     "lint": "oxlint",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check .",
-    "type:check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "effect-tsgo patch",
