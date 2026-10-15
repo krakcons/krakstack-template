@@ -26,9 +26,9 @@
     "@effect/platform-browser": "4.0.0",
     "@effect/platform-bun": "4.0.0",
     "@effect/sql-pg": "4.0.0",
-    "@krak-stack/auth": "0.2.18",
-    "@krak-stack/registry": "0.1.41",
-    "@lucas-barake/effect-form-react": "0.26.0-beta.5",
+    "@krak-stack/auth": "0.2.20",
+    "@krak-stack/registry": "0.1.42",
+    "@lucas-barake/effect-form-react": "1.1.0",
     "@tanstack/highlight": "^0.0.10",
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-start": "^1.168.49",
@@ -64,13 +64,5 @@
     "typescript": "7.0.2",
     "vite": "^8.2.2",
     "vitest": "^5.0.3"
-  },
-  "overrides": {
-    "@lucas-barake/effect-form": "0.25.0-beta.6",
-    "@lucas-barake/effect-form-react": "0.26.0-beta.5"
-  },
-  "patchedDependencies": {
-    "@lucas-barake/effect-form@0.25.0-beta.6": "patches/@lucas-barake%2Feffect-form@0.25.0-beta.6.patch",
-    "@lucas-barake/effect-form-react@0.26.0-beta.5": "patches/@lucas-barake%2Feffect-form-react@0.26.0-beta.5.patch"
   }
 }
