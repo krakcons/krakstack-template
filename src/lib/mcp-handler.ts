@@ -1,19 +1,19 @@
 import { Config, Effect, Layer } from "effect";
+import { McpProtocol, McpServer } from "effect/ai";
 import { FetchHttpClient, HttpRouter, HttpServerRequest } from "effect/http";
-import { ApiClient } from "@krak-stack/registry/httpapi/client";
-import { HttpApiSpec } from "@krak-stack/registry/httpapi/helpers";
-import {
-  HttpApiMcp,
-  httpApiMcpServerLayer,
-  httpApiMcpToolsLayer,
-} from "@krak-stack/registry/httpapi/mcp";
+import { HttpApiAdapter } from "@krak-stack/registry/httpapi/adapter";
+import { makeHttpApiToolkit } from "@krak-stack/registry/httpapi/toolkit";
 
 import { Api } from "@/api";
 import { authClientLayer, CurrentApiKey } from "@/services/auth/client/layer";
 
-const apiClientLayer = Layer.unwrap(
+const adapterLayer = Layer.unwrap(
   Effect.map(Config.URL("VITE_SITE_URL"), (baseUrl) =>
-    ApiClient.layer({ api: Api, baseUrl: baseUrl.toString() }).pipe(
+    HttpApiAdapter.layer({
+      api: Api,
+      baseUrl: baseUrl.toString(),
+      methods: ["get"],
+    }).pipe(
       Layer.provide(
         authClientLayer().pipe(Layer.provide(FetchHttpClient.layer)),
       ),
@@ -21,17 +21,13 @@ const apiClientLayer = Layer.unwrap(
   ),
 );
 
-const httpApiLayer = Layer.mergeAll(
-  HttpApiSpec.layer({ api: Api, methods: ["get"] }),
-  apiClientLayer,
-);
-
-const mcpToolsLayer = httpApiMcpToolsLayer.pipe(
-  Layer.provide(
-    HttpApiMcp.layer({
+const mcpToolsLayer = Layer.effectDiscard(
+  Effect.gen(function* () {
+    const { toolkit, handlers } = yield* makeHttpApiToolkit({
       toolMetaKey: "krakstack-template/httpapi",
-    }),
-  ),
+    });
+    yield* McpServer.registerToolkit(toolkit).pipe(Effect.provide(handlers));
+  }),
 );
 
 const mcpApiKeyMiddleware = HttpRouter.middleware((httpEffect) =>
@@ -43,11 +39,14 @@ const mcpApiKeyMiddleware = HttpRouter.middleware((httpEffect) =>
   }),
 );
 
-const mcpHttpLayer = httpApiMcpServerLayer("/api/mcp").pipe(
-  Layer.provide(mcpApiKeyMiddleware.layer),
-);
+const mcpHttpLayer = McpServer.layerHttp({
+  name: "krakstack-template",
+  version: "1.0.0",
+  path: "/api/mcp",
+  protocols: [McpProtocol.v2025_11_25],
+}).pipe(Layer.provide(mcpApiKeyMiddleware.layer));
 
 export const mcpLayer = Layer.mergeAll(mcpToolsLayer).pipe(
   Layer.provideMerge(mcpHttpLayer),
-  Layer.provide(httpApiLayer),
+  Layer.provide(adapterLayer),
 );

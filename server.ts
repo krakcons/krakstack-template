@@ -66,6 +66,8 @@
 import path from "node:path";
 import type { ServerEntry } from "@tanstack/react-start/server-entry";
 
+type AppServerEntry = ServerEntry & { dispose: () => Promise<void> };
+
 // Configuration
 const SERVER_PORT = Number(process.env.PORT ?? 3000);
 const CLIENT_DIRECTORY = "./dist/client";
@@ -508,9 +510,9 @@ async function initializeServer() {
   log.header("Starting Production Server");
 
   // Load TanStack Start server handler
-  let handler: ServerEntry;
+  let handler: AppServerEntry;
   try {
-    const serverModule: { default: ServerEntry } = await import(
+    const serverModule: { default: AppServerEntry } = await import(
       SERVER_ENTRY_POINT
     );
     handler = serverModule.default;
@@ -550,6 +552,26 @@ async function initializeServer() {
       return new Response("Internal Server Error", { status: 500 });
     },
   });
+
+  let shuttingDown = false;
+  const shutdown = async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    log.info("Draining requests and flushing telemetry");
+    await server.stop();
+    await handler.dispose();
+  };
+  const onShutdown = () => {
+    shutdown().then(
+      () => process.exit(0),
+      (error) => {
+        log.error(`Shutdown failed: ${String(error)}`);
+        process.exit(1);
+      },
+    );
+  };
+  process.once("SIGINT", onShutdown);
+  process.once("SIGTERM", onShutdown);
 
   log.success(`Server listening on http://localhost:${String(server.port)}`);
 }

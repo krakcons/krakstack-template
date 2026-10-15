@@ -72,6 +72,88 @@ bun --bun run dev
 | `bun run fmt`           | Run Oxfmt                          |
 | `bun check`             | Run TypeScript type checking       |
 
+## OpenTelemetry and browser analytics
+
+The template pins the published `@krak-stack/registry@0.1.41` package.
+
+Server telemetry uses `HttpApiOtlp.layer` in `src/lib/api-handler.ts`. Browser
+telemetry runs once on the API client's Atom runtime, mounted by the root layout.
+It sends traces, metrics, and page-view events through the same-origin
+`/api/otel/v1/{traces,metrics,logs}` proxy, not directly to the collector.
+The previous external analytics script is no longer used.
+
+Configure an OTLP/HTTP collector with the server-side variables in `.env.example`:
+
+```dotenv
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+OTEL_SERVICE_NAME=krakstack-template-api
+OTEL_TRACES_EXPORTER=otlp
+OTEL_METRICS_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=otlp
+```
+
+`OTEL_LOGS_EXPORTER=otlp` enables the browser event proxy as well as server log
+export. The collector must route logs to a backend such as Loki to query analytics.
+Browser telemetry uses the service name `krakstack-template-web`. Collector
+credentials belong on the server/collector, never in `VITE_` variables.
+
+With `events: {}`, the registry records `browser.page_view` on startup and each
+pathname change, including back/forward navigation. Same-path, query-only, and
+hash-only changes do not produce additional page views. Each event contains
+`url.path` without query strings or fragments; paths can still contain sensitive
+identifiers. Telemetry creates no cookies or persistent visitor IDs.
+Once auth resolves, browser identity is synchronized
+with the user's ID and active organization ID. Identity is cleared on logout,
+while auth is revalidating, or when auth fails. No names, emails, session tokens,
+or IP addresses are copied into analytics identity. The first page view can be
+anonymous; identity changes only affect future events. Do not also manually
+record page views unless you disable automatic tracking with
+`events: { pageViews: false }`.
+
+For custom events, import `BrowserOtlp` from
+`@krak-stack/registry/opentelemetry/browser` and run
+`BrowserOtlp.track("app.feature.used", { "feature.name": "example" })` as an
+Effect after the browser runtime starts. `BrowserOtlp.identify` (including
+`identify(null)` to clear identity) is synchronized through the auth session atom in the root
+layout. Applications must apply their own consent policy before enabling
+collection. Client-supplied identity is not trusted for authorization or audit
+records. Server code can use `ServerOtlp.track` from
+`@krak-stack/registry/opentelemetry/server` inside
+the existing HTTP runtime. Use stable event names and avoid sensitive properties.
+
+Before exposing the ingestion proxy publicly, apply payload and rate limits at
+your ingress. To verify delivery, navigate between pages, inspect POST requests
+to `/api/otel/v1/logs`, and query the logs backend for `browser.page_view` from
+`krakstack-template-web`. A collector must be running; the template does not
+provision one.
+
+`HttpApiOtlp.layer` includes `ServerOtlp.layer`; do not install a second server
+exporter on the HTTP runtime. The CLI separately provides `ServerOtlp.layer` and
+wraps each execution in a `cli.run` span. HTTP requests, Effect logs, metrics,
+and explicit server events share the long-lived HTTP runtime. Authenticated
+server event calls inherit the auth middleware's user/organization log
+annotations without maintaining global identity state.
+
+Production shutdown handles `SIGINT` and `SIGTERM`: it drains HTTP requests, then
+disposes the HTTP runtime to flush exporters and close scoped resources. Vite
+also disposes the HTTP runtime on hot replacement. CLI runtime disposal flushes
+its exporters when the command completes. Abrupt process termination cannot
+guarantee delivery. `OTEL_SDK_DISABLED=true` disables server export; browser
+collection is configured separately by `BrowserOtlp.layer`.
+
+Run the focused Chromium checks with:
+
+```bash
+bunx playwright install chromium
+bun run test:e2e -- e2e/telemetry.spec.ts
+```
+
+These tests run the template's real browser runtime and inspect outgoing OTLP
+payloads for automatic page views, custom events, and identity changes. Browser
+and SSR API requests are intercepted; no application database or collector is
+used. They verify browser export, not delivery through the production proxy to a
+logs backend.
+
 ## Database
 
 Drizzle ORM manages the PostgreSQL schema. The schema is defined in `src/db/schema.ts`.

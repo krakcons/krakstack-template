@@ -8,7 +8,10 @@ const apiRuntime = Atom.context();
 
 if (!import.meta.env.SSR) {
   apiRuntime.addGlobalLayer(
-    BrowserOtlp.layer({ serviceName: "krakstack-template-web" }),
+    BrowserOtlp.layer({
+      serviceName: "krakstack-template-web",
+      events: {},
+    }),
   );
 }
 

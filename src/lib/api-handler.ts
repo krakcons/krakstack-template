@@ -12,4 +12,18 @@ const appLayer = Layer.mergeAll(apiLayer, docsLayer, mcpLayer).pipe(
   Layer.provideMerge(HttpApiOtlp.layer),
 );
 
-export const { handler } = HttpRouter.toWebHandler(appLayer);
+const makeHandler = () => HttpRouter.toWebHandler(appLayer);
+let web: ReturnType<typeof makeHandler> | undefined;
+
+export const handler = (request: Request) => {
+  web ??= makeHandler();
+  return web.handler(request);
+};
+
+export const dispose = async () => {
+  await web?.dispose();
+};
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(dispose);
+}

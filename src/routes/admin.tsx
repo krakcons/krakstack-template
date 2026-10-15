@@ -3,7 +3,7 @@ import { CheckSquare } from "lucide-react";
 
 import { OrganizationSwitcher, UserButton } from "@krak-stack/auth/components";
 
-import { QueryStandard as TableSearchSchema } from "@krak-stack/registry/query";
+import { QueryStandard } from "@krak-stack/registry/query";
 import {
   SidebarLayout,
   SidebarPageHeader,
@@ -22,7 +22,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeSwitcher, useTheme } from "@/components/theme-switcher";
 
 export const Route = createFileRoute("/admin")({
-  validateSearch: TableSearchSchema,
+  validateSearch: QueryStandard,
   ssr: false,
   beforeLoad: async ({ context }) => {
     const session = await getAuthSession(context.registry);
