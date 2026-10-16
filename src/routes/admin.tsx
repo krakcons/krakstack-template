@@ -53,6 +53,7 @@ function Admin() {
             {
               label: m.admin_sidebar_tasks,
               href: "/admin",
+              exact: true,
               icon: CheckSquare,
             },
           ],
