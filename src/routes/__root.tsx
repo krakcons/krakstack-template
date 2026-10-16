@@ -6,6 +6,7 @@ import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
+  stripSearchParams,
 } from "@tanstack/react-router";
 import { Effect } from "effect";
 import { AsyncResult, type AtomRegistry } from "effect/reactivity";
@@ -22,6 +23,14 @@ import appCss from "../styles.css?url";
 export const Route = createRootRouteWithContext<{
   registry: AtomRegistry.AtomRegistry;
 }>()({
+  search: {
+    middlewares: [
+      stripSearchParams<{ page?: number; pageSize?: number }>({
+        page: 0,
+        pageSize: 20,
+      }),
+    ],
+  },
   head: () => ({
     meta: [
       {
