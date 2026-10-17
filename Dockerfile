@@ -14,7 +14,6 @@ ENV KRAKSTACK_AUTH_URL=$VITE_KRAKSTACK_AUTH_URL
 
 # Install dependencies
 COPY package.json bun.lock ./
-COPY patches ./patches
 RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy source
