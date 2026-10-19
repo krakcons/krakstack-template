@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@effect/vitest";
-import { ServerOtlp } from "@krak-stack/registry/opentelemetry/server";
+import { Otlp } from "@krak-stack/registry/opentelemetry";
 import { ConfigProvider, Effect } from "effect";
 import { FetchHttpClient } from "effect/http";
 
@@ -13,14 +13,14 @@ describe("server telemetry tarball integration", () => {
     };
 
     return Effect.gen(function* () {
-      yield* ServerOtlp.track("app.telemetry.checked", {
+      yield* Otlp.event("app.telemetry.checked", {
         "check.source": "test",
       }).pipe(
         Effect.annotateLogs({
           "user.id": "user-1",
           "organization.id": "org-1",
         }),
-        Effect.provide(ServerOtlp.layer),
+        Effect.provide(Otlp.layer),
         Effect.provideService(FetchHttpClient.Fetch, fetch),
         Effect.provide(
           ConfigProvider.layer(

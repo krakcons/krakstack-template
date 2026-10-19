@@ -76,7 +76,7 @@ const captureTelemetry = async (page: Page) => {
             record.eventName === "app.e2e.flush" &&
             record.attributes.some(
               ({ key, value }) =>
-                key === "test.step" && value.stringValue === step,
+                key === "app.test.step" && value.stringValue === step,
             ),
         ),
       )
@@ -105,7 +105,7 @@ test("records initial and SPA page views without query/hash duplicates or sensit
         attributes.find(({ key }) => key === "url.path")?.value.stringValue,
     );
   expect(paths()).toEqual(["/en/"]);
-  expect(serviceNames).toContain("krakstack-template-web");
+  expect(serviceNames).toContain("krakstack-template-web-local");
 
   await page.evaluate(() => {
     history.pushState(
@@ -173,7 +173,7 @@ test("records initial and SPA page views without query/hash duplicates or sensit
   );
 });
 
-test("exports custom events with occurrence-time identity and clears it with identify(null)", async ({
+test("exports custom event properties without browser-owned identity", async ({
   page,
 }) => {
   const { records, flush } = await captureTelemetry(page);
@@ -182,19 +182,11 @@ test("exports custom events with occurrence-time identity and clears it with ide
     const telemetry: typeof import("./telemetry.fixture") = await import(
       moduleUrl
     );
-    await telemetry.identify({
-      userId: "e2e-user-1",
-      organizationId: "e2e-org-1",
-    });
     await telemetry.track("app.e2e.action", {
       "action.source": "template",
       "action.count": 2,
       "action.success": true,
     });
-    await telemetry.identify({ userId: "e2e-user-2" });
-    await telemetry.track("app.e2e.switched");
-    await telemetry.identify(null);
-    await telemetry.track("app.e2e.anonymous");
   });
   await flush("custom-events");
 
@@ -203,19 +195,19 @@ test("exports custom events with occurrence-time identity and clears it with ide
   );
   expect(action?.attributes).toEqual(
     expect.arrayContaining([
-      { key: "user.id", value: { stringValue: "e2e-user-1" } },
-      { key: "organization.id", value: { stringValue: "e2e-org-1" } },
-      { key: "action.source", value: { stringValue: "template" } },
-      { key: "action.count", value: { intValue: 2 } },
-      { key: "action.success", value: { boolValue: true } },
+      { key: "app.action.source", value: { stringValue: "template" } },
+      { key: "app.action.count", value: { intValue: 2 } },
+      { key: "app.action.success", value: { boolValue: true } },
     ]),
   );
   expect(
-    records.find(({ eventName }) => eventName === "app.e2e.switched")
-      ?.attributes,
-  ).toEqual([{ key: "user.id", value: { stringValue: "e2e-user-2" } }]);
-  expect(
-    records.find(({ eventName }) => eventName === "app.e2e.anonymous")
-      ?.attributes,
-  ).toEqual([]);
+    action?.attributes.some(({ key }) =>
+      [
+        "user.id",
+        "organization.id",
+        "session.id",
+        "analytics.anonymous_id",
+      ].includes(key),
+    ),
+  ).toBe(false);
 });

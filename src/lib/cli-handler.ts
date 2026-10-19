@@ -3,7 +3,7 @@ import { Config, Effect, Layer, Option } from "effect";
 import { FetchHttpClient } from "effect/http";
 import { makeHttpApiCli } from "@krak-stack/registry/httpapi/cli";
 import { HttpApiAdapter } from "@krak-stack/registry/httpapi/adapter";
-import { ServerOtlp } from "@krak-stack/registry/opentelemetry/server";
+import { Otlp } from "@krak-stack/registry/opentelemetry";
 
 import { Api } from "@/api";
 import { authClientLayer } from "@/services/auth/client/layer";
@@ -37,7 +37,7 @@ export const runCli = (args = process.argv.slice(2)) =>
     Effect.withSpan("cli.run"),
     Effect.provide(adapterLayer),
     Effect.provide(BunServices.layer),
-    Effect.provide(ServerOtlp.layer),
+    Effect.provide(Otlp.layer),
     BunRuntime.runMain,
   );
 

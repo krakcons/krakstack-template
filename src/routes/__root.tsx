@@ -1,20 +1,17 @@
 import { KrakstackAuthProvider } from "@krak-stack/auth/components";
 import { KrakstackProvider } from "@krak-stack/registry/krakstack-provider";
-import { BrowserOtlp } from "@krak-stack/registry/opentelemetry/browser";
-import { useAtomSubscribe, useAtomValue } from "@effect/atom-react";
+import { useAtomValue } from "@effect/atom-react";
 import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
   stripSearchParams,
 } from "@tanstack/react-router";
-import { Effect } from "effect";
-import { AsyncResult, type AtomRegistry } from "effect/reactivity";
+import { type AtomRegistry } from "effect/reactivity";
 
 import { ThemeProvider, useTheme } from "@/components/theme-switcher";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ApiClient } from "@/lib/api-client";
-import { authSessionAtom } from "@/services/auth/client";
 import { m } from "../paraglide/messages.js";
 import { getLocale, locales } from "../paraglide/runtime.js";
 import { Access, AccessLabels } from "@/services/auth/access";
@@ -77,27 +74,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  const runtime = useAtomValue(ApiClient.runtime);
+  useAtomValue(ApiClient.runtime);
   const { systemTheme, theme } = useTheme();
-
-  useAtomSubscribe(
-    authSessionAtom,
-    (session) => {
-      if (!AsyncResult.isSuccess(runtime)) return;
-      Effect.runFork(
-        BrowserOtlp.identify(
-          AsyncResult.isSuccess(session) && !session.waiting && session.value
-            ? {
-                userId: session.value.user.id,
-                organizationId:
-                  session.value.session.activeOrganizationId ?? undefined,
-              }
-            : null,
-        ),
-      );
-    },
-    { immediate: true },
-  );
 
   return (
     <html

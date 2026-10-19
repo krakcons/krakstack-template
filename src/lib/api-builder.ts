@@ -1,5 +1,4 @@
-import { PgClient } from "@effect/sql-pg";
-import { Config, Effect, Layer, Schema, String } from "effect";
+import { Effect, Layer, Schema } from "effect";
 import { HttpApiBuilder } from "effect/http-api";
 import {
   ActorRequired,
@@ -15,6 +14,7 @@ import { SqlClient } from "effect/sql";
 
 import { Api } from "@/api";
 import { migrate } from "@/db/migrate";
+import { databaseLayer } from "@/lib/database";
 import { Access } from "@/services/auth/access";
 import { Tasks } from "@/services/task";
 import { tasksHandler } from "@/services/task/api.builder";
@@ -33,11 +33,6 @@ const authProxyLayer = HttpRouter.add(
   ).pipe(Effect.orDie),
 ).pipe(HttpRouter.provideRequest(FetchHttpClient.layer));
 
-const databaseLayer = PgClient.layerConfig({
-  url: Config.Redacted("DATABASE_URL"),
-  transformQueryNames: Config.succeed(String.camelToSnake),
-  transformResultNames: Config.succeed(String.snakeToCamel),
-});
 const migrationLayer = Layer.effectDiscard(migrate);
 
 const healthLayer = HttpApiBuilder.group(Api, "health", healthHandler).pipe(
