@@ -1,8 +1,13 @@
 import { Schema } from "effect";
 
+export const TaskMember = Schema.Struct({ id: Schema.NonEmptyString }).annotate(
+  { identifier: "TaskMember" },
+);
+
 export const TaskSchema = Schema.Struct({
   id: Schema.String,
-  userId: Schema.String,
+  userId: Schema.NullOr(Schema.String),
+  organizationId: Schema.String,
   title: Schema.String,
   description: Schema.NullOr(Schema.String),
   completed: Schema.Boolean,
@@ -11,11 +16,13 @@ export const TaskSchema = Schema.Struct({
 }).annotate({
   identifier: "Task",
   title: "Task",
-  description: "A task belonging to a user",
+  description:
+    "A task belonging to an organization; userId identifies its human creator, or is null for an organization API key",
   examples: [
     {
       id: "1",
       userId: "1",
+      organizationId: "org-1",
       title: "Buy groceries",
       description: null,
       completed: false,
@@ -46,33 +53,49 @@ export const UpdateTaskSchema = Schema.Struct({
   examples: [{ title: "Buy groceries", completed: true }],
 });
 
-export const TaskIdParamsSchema = Schema.Struct({ id: Schema.String }).annotate(
-  {
-    identifier: "TaskIdParamsSchema",
-    title: "Task ID Params",
-    description: "Path parameters for task endpoints requiring an ID",
-    examples: [{ id: "1" }],
-  },
-);
+export const TaskIdParamsSchema = Schema.Struct({
+  id: Schema.String,
+  organizationId: Schema.NonEmptyString,
+}).annotate({
+  identifier: "TaskIdParamsSchema",
+  title: "Task ID Params",
+  description: "Path parameters for task endpoints requiring an ID",
+  examples: [{ id: "1", organizationId: "org-1" }],
+});
 
 export const TaskOwnerSchema = Schema.Struct({
-  userId: Schema.String,
+  organizationId: Schema.NonEmptyString,
 }).annotate({ identifier: "TaskOwner" });
 
 export const OwnedTaskSchema = Schema.Struct({
   id: Schema.String,
-  userId: Schema.String,
+  organizationId: Schema.NonEmptyString,
 }).annotate({ identifier: "OwnedTask" });
 
 export const OwnedTaskCreateSchema = Schema.Struct({
-  userId: Schema.String,
+  organizationId: Schema.NonEmptyString,
+  member: Schema.NullOr(TaskMember),
   payload: CreateTaskSchema,
 }).annotate({ identifier: "OwnedTaskCreate" });
 
 export const OwnedTaskUpdateSchema = Schema.Struct({
   id: Schema.String,
-  userId: Schema.String,
+  organizationId: Schema.NonEmptyString,
+  member: Schema.NullOr(TaskMember),
   payload: UpdateTaskSchema,
 }).annotate({ identifier: "OwnedTaskUpdate" });
 
 export const TaskSchemaStandard = Schema.toStandardSchemaV1(TaskSchema);
+
+export const TaskAuditAction = Schema.Literals([
+  "task.created",
+  "task.updated",
+  "task.completed",
+  "task.reopened",
+  "task.deleted",
+]).annotate({ identifier: "TaskAuditAction" });
+
+export const OwnedTaskDeleteSchema = Schema.Struct({
+  ...OwnedTaskSchema.fields,
+  member: Schema.NullOr(TaskMember),
+}).annotate({ identifier: "OwnedTaskDelete" });

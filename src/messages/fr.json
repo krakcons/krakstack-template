@@ -1,4 +1,13 @@
 {
+  "audit_title": "Journal d’audit",
+  "audit_description": "L’historique d’audit de tous les enregistrements et membres de cette organisation.",
+  "organization_select_required": "Sélectionnez une organisation pour afficher son espace de travail.",
+  "audit_load_error": "Impossible de charger le journal d’audit.",
+  "audit_created": "Tâche créée",
+  "audit_updated": "Tâche modifiée",
+  "audit_completed": "Tâche terminée",
+  "audit_reopened": "Tâche rouverte",
+  "audit_deleted": "Tâche supprimée",
   "app_name": "Modèle",
   "table_page_size": "Taille de la page",
   "table_name": "Nom",

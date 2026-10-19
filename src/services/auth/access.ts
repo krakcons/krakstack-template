@@ -7,16 +7,45 @@ import { m } from "@/paraglide/messages";
 
 export const Access = defineProjectAccess({
   project: "krakstack-template",
-  permissions: ["tasks:read", "tasks:create", "tasks:update", "tasks:delete"],
+  permissions: [
+    "tasks:read",
+    "tasks:create",
+    "tasks:update",
+    "tasks:delete",
+    "audit:read",
+  ],
   roles: {
-    owner: ["tasks:read", "tasks:create", "tasks:update", "tasks:delete"],
-    admin: ["tasks:read", "tasks:create", "tasks:update", "tasks:delete"],
+    owner: [
+      "tasks:read",
+      "tasks:create",
+      "tasks:update",
+      "tasks:delete",
+      "audit:read",
+    ],
+    admin: [
+      "tasks:read",
+      "tasks:create",
+      "tasks:update",
+      "tasks:delete",
+      "audit:read",
+    ],
     support: ["tasks:read"],
     member: ["tasks:read", "tasks:create", "tasks:update", "tasks:delete"],
   },
   apiKeys: {
-    user: ["tasks:read", "tasks:create", "tasks:update", "tasks:delete"],
-    organization: [],
+    user: [
+      "tasks:read",
+      "tasks:create",
+      "tasks:update",
+      "tasks:delete",
+      "audit:read",
+    ],
+    organization: [
+      "tasks:read",
+      "tasks:create",
+      "tasks:update",
+      "tasks:delete",
+    ],
   },
 });
 
@@ -29,6 +58,10 @@ export const AccessLabels = defineProjectAccessLabels(Access, {
     member: m.docs_permissions_role_member(),
   },
   permissions: {
+    audit: {
+      label: m.audit_title(),
+      actions: { read: m.docs_permissions_action_read() },
+    },
     tasks: {
       label: m.docs_permissions_resource_tasks(),
       actions: {

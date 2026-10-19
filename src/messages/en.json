@@ -1,4 +1,13 @@
 {
+  "audit_title": "Audit log",
+  "audit_description": "Audit history across all records and members of this organization.",
+  "organization_select_required": "Select an organization to view its workspace.",
+  "audit_load_error": "Could not load the audit log.",
+  "audit_created": "Created task",
+  "audit_updated": "Updated task",
+  "audit_completed": "Completed task",
+  "audit_reopened": "Reopened task",
+  "audit_deleted": "Deleted task",
   "app_name": "Template",
   "table_page_size": "Page size",
   "table_empty": "No results.",

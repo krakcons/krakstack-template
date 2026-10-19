@@ -10,6 +10,7 @@ import {
   TaskSchema,
   UpdateTaskSchema,
 } from "./schema";
+import { OrganizationParams } from "@/services/audit/schema";
 
 export const TasksApiGroup = HttpApiGroup.make("tasks")
   .annotateMerge(
@@ -19,7 +20,8 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
     }),
   )
   .add(
-    HttpApiEndpoint.get("listTasks", "/tasks", {
+    HttpApiEndpoint.get("listTasks", "/organizations/:organizationId/tasks", {
+      params: OrganizationParams,
       success: Schema.Array(TaskSchema),
       error: [
         HttpApiError.Unauthorized,
@@ -29,13 +31,13 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
     }).annotateMerge(
       OpenApi.annotations({
         summary: "List all tasks",
-        description:
-          "Returns a list of all tasks belonging to the authenticated user",
+        description: "Returns all tasks in the verified active organization",
       }),
     ),
   )
   .add(
-    HttpApiEndpoint.post("createTask", "/tasks", {
+    HttpApiEndpoint.post("createTask", "/organizations/:organizationId/tasks", {
+      params: OrganizationParams,
       payload: CreateTaskSchema,
       success: TaskSchema,
       error: [
@@ -46,12 +48,12 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
     }).annotateMerge(
       OpenApi.annotations({
         summary: "Create a task",
-        description: "Creates a new task for the authenticated user",
+        description: "Creates a task in the verified active organization",
       }),
     ),
   )
   .add(
-    HttpApiEndpoint.get("getTask", "/tasks/:id", {
+    HttpApiEndpoint.get("getTask", "/organizations/:organizationId/tasks/:id", {
       params: TaskIdParamsSchema,
       success: TaskSchema,
       error: [
@@ -64,43 +66,50 @@ export const TasksApiGroup = HttpApiGroup.make("tasks")
       OpenApi.annotations({
         summary: "Get a task by ID",
         description:
-          "Retrieves a single task by its ID for the authenticated user",
+          "Retrieves a task by ID in the verified active organization",
       }),
     ),
   )
   .add(
-    HttpApiEndpoint.patch("updateTask", "/tasks/:id", {
-      params: TaskIdParamsSchema,
-      payload: UpdateTaskSchema,
-      success: TaskSchema,
-      error: [
-        HttpApiError.Unauthorized,
-        Forbidden,
-        HttpApiError.NotFound,
-        HttpApiError.InternalServerError,
-      ],
-    }).annotateMerge(
+    HttpApiEndpoint.patch(
+      "updateTask",
+      "/organizations/:organizationId/tasks/:id",
+      {
+        params: TaskIdParamsSchema,
+        payload: UpdateTaskSchema,
+        success: TaskSchema,
+        error: [
+          HttpApiError.Unauthorized,
+          Forbidden,
+          HttpApiError.NotFound,
+          HttpApiError.InternalServerError,
+        ],
+      },
+    ).annotateMerge(
       OpenApi.annotations({
         summary: "Update a task",
-        description:
-          "Partially updates an existing task by its ID for the authenticated user",
+        description: "Updates a task in the verified active organization",
       }),
     ),
   )
   .add(
-    HttpApiEndpoint.delete("deleteTask", "/tasks/:id", {
-      params: TaskIdParamsSchema,
-      success: TaskSchema,
-      error: [
-        HttpApiError.Unauthorized,
-        Forbidden,
-        HttpApiError.NotFound,
-        HttpApiError.InternalServerError,
-      ],
-    }).annotateMerge(
+    HttpApiEndpoint.delete(
+      "deleteTask",
+      "/organizations/:organizationId/tasks/:id",
+      {
+        params: TaskIdParamsSchema,
+        success: TaskSchema,
+        error: [
+          HttpApiError.Unauthorized,
+          Forbidden,
+          HttpApiError.NotFound,
+          HttpApiError.InternalServerError,
+        ],
+      },
+    ).annotateMerge(
       OpenApi.annotations({
         summary: "Delete a task",
-        description: "Deletes a task by its ID for the authenticated user",
+        description: "Deletes a task in the verified active organization",
       }),
     ),
   )

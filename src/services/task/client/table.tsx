@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { m } from "@/paraglide/messages";
+import { useOrganizationId } from "@/services/auth/client/organization";
 
 import { TaskDialog } from "./form";
 import {
@@ -34,8 +35,9 @@ type TaskTableProps = Pick<DataTableProps<Task>, "onStateChange" | "state">;
 
 export function TaskTable({ onStateChange, state }: TaskTableProps) {
   const tasksResult = useTasksAtom();
-  const updateTask = useAtomSet(updateTaskAtom);
-  const deleteTask = useAtomSet(deleteTaskAtom);
+  const organizationId = useOrganizationId();
+  const updateTask = useAtomSet(updateTaskAtom(organizationId));
+  const deleteTask = useAtomSet(deleteTaskAtom(organizationId));
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const tasks = AsyncResult.match(tasksResult, {
@@ -103,7 +105,6 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
         updateTask({
           params: { id: task.id },
           payload: { completed: true },
-          reactivityKeys: ["tasks"],
         });
       },
     },
@@ -115,7 +116,6 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
         updateTask({
           params: { id: task.id },
           payload: { completed: false },
-          reactivityKeys: ["tasks"],
         });
       },
     },
@@ -132,7 +132,6 @@ export function TaskTable({ onStateChange, state }: TaskTableProps) {
 
     deleteTask({
       params: { id: deletingTask.id },
-      reactivityKeys: ["tasks"],
     });
     setDeletingTask(null);
   };

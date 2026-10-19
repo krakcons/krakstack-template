@@ -18,6 +18,7 @@ import { databaseLayer } from "@/lib/database";
 import { Access } from "@/services/auth/access";
 import { Tasks } from "@/services/task";
 import { tasksHandler } from "@/services/task/api.builder";
+import { auditHandler } from "@/services/audit/api.builder";
 
 const AuthUrl = Schema.String.pipe(
   Schema.refine((value): value is string => URL.canParse(value), {
@@ -59,6 +60,7 @@ const httpApiLayer = HttpApiBuilder.layer(Api, {
 }).pipe(
   Layer.provideMerge(healthLayer),
   Layer.provide(tasksHandler),
+  Layer.provide(auditHandler),
   Layer.provide(AuthMiddleware.layer()),
   Layer.provide(ActorRequired.layer(Access)),
   Layer.provideMerge(Tasks.layer),

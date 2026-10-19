@@ -34,6 +34,25 @@ describe("template access", () => {
     );
   });
 
+  it("offers task actions for organization keys without granting audit access", () => {
+    expect(Access.apiKeyPermissions.organization).toEqual({
+      "krakstack-template": [
+        "tasks:read",
+        "tasks:create",
+        "tasks:update",
+        "tasks:delete",
+      ],
+    });
+    const actor = Access.actorForApiKey({
+      apiKeyId: "org-key",
+      owner: { type: "organization", organizationId: "org-1" },
+      grant: Access.encodeGrant(["tasks:read", "tasks:create", "audit:read"]),
+    });
+    expect(actor.permissions.has(Access.qualify("tasks:create"))).toBe(true);
+    expect(actor.permissions.has(Access.qualify("tasks:update"))).toBe(false);
+    expect(actor.permissions.has(Access.qualify("audit:read"))).toBe(false);
+  });
+
   it.effect("denies a policy not present in the current actor", () => {
     const actor = Access.actorForApiKey({
       apiKeyId: "key-1",

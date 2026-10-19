@@ -24,6 +24,7 @@ import {
 } from "@krak-stack/registry/effect-form";
 import { FieldGroup } from "@/components/ui/field";
 import { m } from "@/paraglide/messages";
+import { useOrganizationId } from "@/services/auth/client/organization";
 
 import { createTaskAtom, updateTaskAtom, type Task } from "./atom";
 
@@ -47,7 +48,7 @@ const taskFormBuilder = FormBuilder.empty
   .addField("title", TaskFormSchema.fields.title)
   .addField("description", TaskFormSchema.fields.description);
 
-const makeTaskForm = (task?: Task | null) =>
+const makeTaskForm = (organizationId: string, task?: Task | null) =>
   FormReact.make(taskFormBuilder, {
     fields: {
       title: TextField,
@@ -59,14 +60,12 @@ const makeTaskForm = (task?: Task | null) =>
       const description = decoded.description.trim();
 
       return task
-        ? get.setResult(updateTaskAtom, {
+        ? get.setResult(updateTaskAtom(organizationId), {
             params: { id: task.id },
             payload: { title, description: description || null },
-            reactivityKeys: ["tasks"],
           })
-        : get.setResult(createTaskAtom, {
+        : get.setResult(createTaskAtom(organizationId), {
             payload: { title, description: description || undefined },
-            reactivityKeys: ["tasks"],
           });
     },
   });
@@ -77,7 +76,8 @@ const TaskForm = ({
 }: Pick<Props, "task"> & {
   onSuccess: () => void;
 }) => {
-  const [form] = useState(() => makeTaskForm(task));
+  const organizationId = useOrganizationId();
+  const [form] = useState(() => makeTaskForm(organizationId, task));
   const submit = useAtomSet(form.submit);
   const submitResult = useAtomValue(form.submit);
 

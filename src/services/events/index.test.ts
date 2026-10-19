@@ -75,7 +75,7 @@ const testConfigLayer = (serviceName: string) =>
     }),
   );
 
-describe("events tarball integration", () => {
+describe("events package integration", () => {
   it.effect(
     "enriches events from Cloudflare without exporting the raw IP",
     () =>
@@ -183,6 +183,7 @@ describe("events tarball integration", () => {
           eventId: randomUUID(),
           name: "task.created",
           category: "audit" as const,
+          target: { id: "task-1", name: "Task 1", type: "task" },
           identity: { userId: "untrusted-fallback-user" },
           properties: { taskId: "task-1" },
         };

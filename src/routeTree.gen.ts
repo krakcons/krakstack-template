@@ -17,6 +17,8 @@ import { Route as AuthAuthRouteImport } from './routes/_auth/auth'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
 import { Route as AuthVerifyEmailRouteImport } from './routes/_auth/verify-email'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DocsPermissionsRouteImport } from './routes/docs/permissions'
 import { Route as DocsChar123SlugChar125RouteImport } from './routes/docs.{-$slug}'
@@ -60,6 +62,16 @@ const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => AuthRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -78,41 +90,46 @@ const DocsChar123SlugChar125Route = DocsChar123SlugChar125RouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/2fa': typeof Auth2faRoute
   '/auth': typeof AuthAuthRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/verify-email': typeof AuthVerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/2fa': typeof Auth2faRoute
   '/auth': typeof AuthAuthRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-in': typeof AuthSignInRoute
   '/verify-email': typeof AuthVerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/_auth/2fa': typeof Auth2faRoute
   '/_auth/auth': typeof AuthAuthRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-in': typeof AuthSignInRoute
   '/_auth/verify-email': typeof AuthVerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/api/$': typeof ApiSplatRoute
   '/docs/permissions': typeof DocsPermissionsRoute
   '/docs/{-$slug}': typeof DocsChar123SlugChar125Route
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -124,21 +141,24 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sign-in'
     | '/verify-email'
+    | '/admin/audit'
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/2fa'
     | '/auth'
     | '/reset-password'
     | '/sign-in'
     | '/verify-email'
+    | '/admin/audit'
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
+    | '/admin'
   id:
     | '__root__'
     | '/'
@@ -149,15 +169,17 @@ export interface FileRouteTypes {
     | '/_auth/reset-password'
     | '/_auth/sign-in'
     | '/_auth/verify-email'
+    | '/admin/audit'
     | '/api/$'
     | '/docs/permissions'
     | '/docs/{-$slug}'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
   DocsPermissionsRoute: typeof DocsPermissionsRoute
   DocsChar123SlugChar125Route: typeof DocsChar123SlugChar125Route
@@ -221,6 +243,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -263,10 +299,22 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface AdminRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
   DocsPermissionsRoute: DocsPermissionsRoute,
   DocsChar123SlugChar125Route: DocsChar123SlugChar125Route,

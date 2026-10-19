@@ -3,6 +3,7 @@ import { AuthMiddleware } from "@krak-stack/auth/server";
 import { HealthApiGroup } from "@krak-stack/registry/service-health";
 
 import { TasksApiGroup } from "@/services/task/api.group";
+import { AuditApiGroup } from "@/services/audit/api.group";
 
 export const Api = HttpApi.make("Api")
   .annotateMerge(
@@ -13,6 +14,7 @@ export const Api = HttpApi.make("Api")
     }),
   )
   .add(TasksApiGroup)
+  .add(AuditApiGroup)
   .middleware(AuthMiddleware)
   .add(HealthApiGroup)
   .prefix("/api");
