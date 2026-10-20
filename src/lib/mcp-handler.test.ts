@@ -79,7 +79,10 @@ describe("MCP registry integration", () => {
             jsonrpc: "2.0",
             id: index + 3,
             method: "tools/call",
-            params: { name: "tasks_listTasks", arguments: {} },
+            params: {
+              name: "tasks_listTasks",
+              arguments: { params: { organizationId: "test-organization" } },
+            },
           },
           session,
           key,
@@ -88,8 +91,8 @@ describe("MCP registry integration", () => {
         expect(await response.text()).toContain('"isError":false');
       }
       expect(requests.map((request) => request.url)).toEqual([
-        "http://api.example.test/api/tasks",
-        "http://api.example.test/api/tasks",
+        "http://api.example.test/api/organizations/test-organization/tasks",
+        "http://api.example.test/api/organizations/test-organization/tasks",
       ]);
       expect(
         requests.map((request) => request.headers.get("x-api-key")),

@@ -14,10 +14,11 @@ if (!import.meta.env.SSR) {
   apiRuntime.addGlobalLayer(
     Layer.mergeAll(
       BrowserEvents.layer({
+        requireConsent: false,
         locale: getLocale,
         sanitizePath: (path) => path.replace(/(\/tasks)\/[^/]+/g, "$1/$taskId"),
       }),
-      BrowserWebVitals.layer(),
+      BrowserWebVitals.layer({ requireConsent: false }),
     ).pipe(
       Layer.provideMerge(
         BrowserOtlp.layer({
