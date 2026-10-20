@@ -27,7 +27,7 @@
     "@effect/platform-bun": "4.0.0",
     "@effect/sql-pg": "4.0.0",
     "@krak-stack/auth": "0.2.25",
-    "@krak-stack/registry": "0.1.52",
+    "@krak-stack/registry": "0.1.53",
     "@lucas-barake/effect-form-react": "1.1.0",
     "@tanstack/highlight": "^0.0.10",
     "@tanstack/react-router": "^1.170.32",

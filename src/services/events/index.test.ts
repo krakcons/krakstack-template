@@ -17,7 +17,11 @@ import { FetchHttpClient, HttpRouter, HttpServerRequest } from "effect/http";
 import { SqlClient, SqlSchema } from "effect/sql";
 
 import { databaseLayer } from "@/lib/database";
-import { eventsLayer } from "./index";
+import { BrowserCrypto } from "@effect/platform-browser";
+
+const eventsLayer = Events.layerWith({ geolocation: "cloudflare" }).pipe(
+  Layer.provide(BrowserCrypto.layer),
+);
 
 const StoredEvent = Schema.Struct({
   eventId: Schema.String,
@@ -61,7 +65,7 @@ const testConfigLayer = (serviceName: string) =>
         ConfigProvider.fromUnknown({
           DATABASE_URL: Redacted.value(url),
           VITE_SITE_URL: "https://template.example.test",
-          EVENTS_SECRET: "test-events-secret-at-least-32-characters",
+          APP_SECRET: "test-events-secret-at-least-32-characters",
           KRAKSTACK_AUTH_URL: "https://auth.example.test",
           KRAKSTACK_AUTH_SERVICE_API_KEY: "test-service-key",
           OTEL_SERVICE_NAME: serviceName,
@@ -153,7 +157,7 @@ describe("events package integration", () => {
           ConfigProvider.layer(
             ConfigProvider.fromUnknown({
               VITE_SITE_URL: "https://template.example.test",
-              EVENTS_SECRET: "test-events-secret-at-least-32-characters",
+              APP_SECRET: "test-events-secret-at-least-32-characters",
               OTEL_SERVICE_NAME: "cloudflare-config-test",
               OTEL_SDK_DISABLED: "true",
             }),

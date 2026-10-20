@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { PgClient } from "@effect/sql-pg";
 import { Events } from "@krak-stack/registry/events";
+import { BrowserCrypto } from "@effect/platform-browser";
 import { Otlp } from "@krak-stack/registry/opentelemetry";
 import {
   Config,
@@ -35,10 +36,10 @@ const databaseLayer = PgClient.layerConfig({
   transformQueryNames: Config.succeed(String.camelToSnake),
   transformResultNames: Config.succeed(String.snakeToCamel),
 });
-const eventLayer = Events.layer({
+const eventLayer = Events.layerWith({
   origin: "https://template.example.test",
   secret: Redacted.make("test-events-secret-at-least-32-characters"),
-}).pipe(Layer.provideMerge(Otlp.layer));
+}).pipe(Layer.provide(BrowserCrypto.layer), Layer.provideMerge(Otlp.layer));
 const layer = Tasks.layer.pipe(
   Layer.provideMerge(eventLayer),
   Layer.provideMerge(databaseLayer),

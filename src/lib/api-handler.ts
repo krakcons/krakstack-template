@@ -10,10 +10,11 @@ import { Otlp } from "@krak-stack/registry/opentelemetry";
 import { Events } from "@krak-stack/registry/events";
 import { AuthMiddleware } from "@krak-stack/auth/server";
 import { databaseLayer } from "@/lib/database";
-import { eventsLayer } from "@/services/events";
+import { BrowserCrypto } from "@effect/platform-browser";
 
 const docsLayer = HttpApiScalar.layer(Api, { path: "/api/docs" });
-const applicationLayer = eventsLayer.pipe(
+const applicationLayer = Events.layerWith({ geolocation: "cloudflare" }).pipe(
+  Layer.provide(BrowserCrypto.layer),
   Layer.provide(databaseLayer),
   Layer.provideMerge(Otlp.layer),
 );
