@@ -3,7 +3,7 @@ import {
   activeAuthOrganizationAtom,
   usePermissions,
 } from "@krak-stack/auth/components";
-import { QueryStandard } from "@krak-stack/registry/query";
+import { EventQueryStandard } from "@krak-stack/registry/events/schema";
 import { Effect } from "effect";
 import { AtomRegistry } from "effect/reactivity";
 import { SidebarPageHeader } from "@krak-stack/registry/sidebar-layout";
@@ -33,7 +33,7 @@ const AuditPage = () => {
   );
 };
 export const Route = createFileRoute("/admin/audit")({
-  validateSearch: QueryStandard,
+  validateSearch: EventQueryStandard,
   beforeLoad: async ({ context }) => {
     const organizationId = context.session.session.activeOrganizationId;
     if (!organizationId) throw redirect({ to: "/admin" });

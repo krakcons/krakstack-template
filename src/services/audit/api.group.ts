@@ -6,13 +6,13 @@ import {
   OpenApi,
 } from "effect/http-api";
 import { AuditResponse, OrganizationParams } from "./schema";
-import { Query } from "@krak-stack/registry/query";
+import { EventQuery } from "@krak-stack/registry/events/schema";
 
 export const AuditApiGroup = HttpApiGroup.make("audit")
   .add(
     HttpApiEndpoint.get("listAudit", "/organizations/:organizationId/audit", {
       params: OrganizationParams,
-      query: Query,
+      query: EventQuery,
       success: AuditResponse,
       error: [
         HttpApiError.Unauthorized,

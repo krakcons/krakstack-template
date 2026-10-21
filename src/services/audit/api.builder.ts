@@ -12,7 +12,7 @@ export const auditHandler = HttpApiBuilder.group(Api, "audit", (handlers) =>
       const organizationId = yield* requireOrganization(params.organizationId);
       const events = yield* Events;
       return yield* events
-        .listAudit({ organizationId, ...query })
+        .list({ ...query, organizationId, category: "audit" })
         .pipe(Effect.mapError(() => new HttpApiError.InternalServerError({})));
     }).pipe(withPolicy(Access.permission("audit:read"))),
   ),

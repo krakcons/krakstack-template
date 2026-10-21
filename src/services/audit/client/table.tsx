@@ -1,16 +1,9 @@
 import { useAtomValue } from "@effect/atom-react";
 import {
-  activeAuthOrganizationAtom,
-  assetUrl,
-  useKrakstackAuth,
-} from "@krak-stack/auth/components";
-import {
   AuditLogTable,
-  type AuditActor,
+  type AuditLogTableProps,
 } from "@krak-stack/registry/events/client";
-import type { QueryType } from "@krak-stack/registry/query";
-import type { DataTableProps } from "@krak-stack/registry/data-table";
-import type { EventLogRecord } from "@krak-stack/registry/events/schema";
+import type { EventQuery } from "@krak-stack/registry/events/schema";
 import { AsyncResult } from "effect/reactivity";
 import { m } from "@/paraglide/messages";
 import { useOrganizationId } from "@/services/auth/client/organization";
@@ -19,33 +12,10 @@ import { auditLogAtom } from "./atom";
 export const OrganizationAuditLog = ({
   state,
   onStateChange,
-}: Pick<DataTableProps<EventLogRecord>, "onStateChange"> & {
-  state: QueryType;
+}: Pick<AuditLogTableProps, "onStateChange"> & {
+  state: EventQuery;
 }) => {
   const organizationId = useOrganizationId();
-  const auth = useKrakstackAuth();
-  const organization = AsyncResult.getOrElse(
-    useAtomValue(activeAuthOrganizationAtom(auth?.baseUrl)(organizationId)),
-    () => null,
-  );
-  const actors: AuditActor[] = organization
-    ? [
-        {
-          type: "organization",
-          id: organization.id,
-          label: organization.name,
-          description: organization.id,
-          imageSrc: assetUrl(organization.logo, auth?.baseUrl),
-        },
-        ...organization.members.map((member): AuditActor => ({
-          type: "user",
-          id: member.userId,
-          label: member.user.name,
-          description: member.userId,
-          imageSrc: assetUrl(member.user.image, auth?.baseUrl),
-        })),
-      ]
-    : [];
   const result = useAtomValue(auditLogAtom(organizationId)(state));
   const page = AsyncResult.match(result, {
     onInitial: () => undefined,
@@ -74,10 +44,7 @@ export const OrganizationAuditLog = ({
       rowCount={page?.meta.total ?? 0}
       state={state}
       onStateChange={onStateChange}
-      actors={actors}
-      renderAction={(entry) =>
-        actionLabels.get(entry.eventName) ?? entry.eventName
-      }
+      events={Array.from(actionLabels, ([value, label]) => ({ value, label }))}
       {...status}
     />
   );

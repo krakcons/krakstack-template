@@ -52,20 +52,23 @@ const layer = Tasks.layer.pipe(
     ),
   ),
 );
-const actor = (member: typeof TaskMember.Type, organizationId = orgA) =>
+const actor = (
+  member: typeof TaskMember.Type & { readonly name: string },
+  organizationId = orgA,
+) =>
   Effect.annotateLogs({
     "user.id": member.id,
     "organization.id": organizationId,
     "app.actor.type": "user",
     "app.actor.id": member.id,
     "user.roles": ["member"],
-    "user.full_name": "Not stored in audit",
+    "user.full_name": member.name,
     "app.user.image": "https://example.test/not-stored.png",
   });
 const listAudit = (organizationId: string) =>
   Effect.gen(function* () {
     const events = yield* Events;
-    return (yield* events.listAudit({ organizationId })).data;
+    return (yield* events.list({ organizationId, category: "audit" })).data;
   });
 beforeAll(() => Effect.runPromise(migrate.pipe(Effect.provide(layer))));
 afterEach(() =>
@@ -190,6 +193,9 @@ describe("organization tasks and audit", () => {
         );
         expect(aliceEvent).toBeDefined();
         if (aliceEvent) {
+          expect(eventTextAttribute(aliceEvent, "user.full_name")).toBe(
+            alice.name,
+          );
           expect(eventStringArrayAttribute(aliceEvent, "user.roles")).toEqual([
             "member",
           ]);
@@ -213,7 +219,6 @@ describe("organization tasks and audit", () => {
         const stored = JSON.stringify(
           yield* sql`SELECT payload_json FROM events WHERE service_name = ${serviceName}`,
         );
-        expect(stored).not.toContain("Not stored in audit");
         expect(stored).not.toContain("not-stored.png");
       }).pipe(actor(alice), Effect.provide(layer)),
   );

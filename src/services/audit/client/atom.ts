@@ -1,9 +1,9 @@
 import { Atom } from "effect/reactivity";
 import { ApiClient } from "@/lib/api-client";
-import type { QueryType } from "@krak-stack/registry/query";
+import type { EventQuery } from "@krak-stack/registry/events/schema";
 
 export const auditLogAtom = Atom.family((organizationId: string) =>
-  Atom.family((query: QueryType) =>
+  Atom.family((query: EventQuery) =>
     Atom.optimistic(
       ApiClient.query("audit", "listAudit", {
         params: { organizationId },
