@@ -126,7 +126,6 @@ describe("organization tasks and audit", () => {
           "task.completed",
           "task.created",
           "task.deleted",
-          "task.updated",
         ]);
         for (const entry of audit) {
           expect(eventTextAttribute(entry, "app.actor.type")).toBe(
@@ -279,7 +278,10 @@ describe("organization tasks and audit", () => {
               organizationId: orgA,
               member: bob,
               id: task.id,
-              payload: { completed },
+              payload: {
+                completed,
+                title: completed ? "Completed task" : "Reopened task",
+              },
             })
             .pipe(actor(bob));
           expect(Option.isSome(updated)).toBe(true);
@@ -287,7 +289,8 @@ describe("organization tasks and audit", () => {
         const audit = yield* listAudit(orgA);
         expect(
           audit.filter((entry) => entry.eventName === "task.updated"),
-        ).toHaveLength(3);
+        ).toHaveLength(0);
+        expect(audit).toHaveLength(3);
         expect(
           audit.filter((entry) => entry.eventName === "task.completed"),
         ).toHaveLength(1);
@@ -306,6 +309,43 @@ describe("organization tasks and audit", () => {
             ),
         ).toBe(true);
       }).pipe(actor(alice), Effect.provide(layer)),
+  );
+
+  it.effect("audits a concurrent completion transition only once", () =>
+    Effect.gen(function* () {
+      const tasks = yield* Tasks;
+      const task = yield* tasks.create({
+        organizationId: orgA,
+        member: alice,
+        payload: { title: "Concurrent completion" },
+      });
+      const updates = yield* Effect.all(
+        [alice, bob].map((member) =>
+          tasks
+            .update({
+              organizationId: orgA,
+              member,
+              id: task.id,
+              payload: { completed: true },
+            })
+            .pipe(actor(member)),
+        ),
+        { concurrency: 2 },
+      );
+      expect(updates.every(Option.isSome)).toBe(true);
+      const audit = yield* listAudit(orgA);
+      expect(
+        audit.filter((entry) => entry.eventName === "task.updated"),
+      ).toHaveLength(0);
+      expect(
+        audit.filter((entry) => entry.eventName === "task.completed"),
+      ).toHaveLength(1);
+      expect(
+        Option.getOrThrow(
+          yield* tasks.findOne({ organizationId: orgA, id: task.id }),
+        ).completed,
+      ).toBe(true);
+    }).pipe(actor(alice), Effect.provide(layer)),
   );
 
   it.effect(

@@ -1,8 +1,9 @@
 {
-  "audit_title": "Journal d’audit",
-  "audit_description": "L’historique d’audit de tous les enregistrements et membres de cette organisation.",
+  "audit_title": "Activité",
+  "audit_history_title": "Historique d’activité",
+  "audit_description": "Consultez les actions réussies et les acteurs qui les ont effectuées.",
   "organization_select_required": "Sélectionnez une organisation pour afficher son espace de travail.",
-  "audit_load_error": "Impossible de charger le journal d’audit.",
+  "audit_load_error": "Impossible de charger l’historique d’activité.",
   "audit_created": "Tâche créée",
   "audit_updated": "Tâche modifiée",
   "audit_completed": "Tâche terminée",

@@ -1,8 +1,9 @@
 {
-  "audit_title": "Audit log",
-  "audit_description": "Audit history across all records and members of this organization.",
+  "audit_title": "Activity",
+  "audit_history_title": "Activity history",
+  "audit_description": "Review successful actions and who performed them.",
   "organization_select_required": "Select an organization to view its workspace.",
-  "audit_load_error": "Could not load the audit log.",
+  "audit_load_error": "Unable to load the activity history.",
   "audit_created": "Created task",
   "audit_updated": "Updated task",
   "audit_completed": "Completed task",

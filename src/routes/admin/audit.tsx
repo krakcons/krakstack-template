@@ -20,7 +20,7 @@ const AuditPage = () => {
   return (
     <>
       <SidebarPageHeader
-        title={m.audit_title()}
+        title={m.audit_history_title()}
         description={m.audit_description()}
       />
       <OrganizationAuditLog

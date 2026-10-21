@@ -13,7 +13,10 @@ import { databaseLayer } from "@/lib/database";
 import { BrowserCrypto } from "@effect/platform-browser";
 
 const docsLayer = HttpApiScalar.layer(Api, { path: "/api/docs" });
-const applicationLayer = Events.layerWith({ geolocation: "cloudflare" }).pipe(
+const applicationLayer = Events.layerWith({
+  geolocation: "cloudflare",
+  requireConsent: false,
+}).pipe(
   Layer.provide(BrowserCrypto.layer),
   Layer.provide(databaseLayer),
   Layer.provideMerge(Otlp.layer),

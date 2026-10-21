@@ -221,7 +221,7 @@ test("shows an organization action with its member name and profile photo", asyn
   await page.goto("/en/admin/audit");
   await expect(
     page
-      .getByRole("region", { name: "Audit log" })
+      .getByRole("region", { name: "Activity history" })
       .getByText("Created task", { exact: true }),
   ).toHaveCount(0);
   await page.getByRole("link", { name: "Tasks", exact: true }).click();
@@ -234,8 +234,8 @@ test("shows an organization action with its member name and profile photo", asyn
     .getByRole("textbox", { name: "Title", exact: true })
     .press("Enter");
   await expect(dialog).not.toBeVisible();
-  await page.getByRole("link", { name: "Audit log", exact: true }).click();
-  const audit = page.getByRole("region", { name: "Audit log" });
+  await page.getByRole("link", { name: "Activity", exact: true }).click();
+  const audit = page.getByRole("region", { name: "Activity history" });
   const headers = audit.getByRole("columnheader");
   await expect(headers).toHaveCount(5);
   for (const [index, label] of [
@@ -257,9 +257,7 @@ test("shows an organization action with its member name and profile photo", asyn
   await expect(
     audit.getByText("Member of org-a", { exact: true }),
   ).toBeVisible();
-  await expect(
-    audit.getByText("member@example.test", { exact: true }),
-  ).toBeVisible();
+  await expect(audit.getByText(memberId, { exact: true })).toBeVisible();
   await expect(
     audit.getByRole("img", { name: "Member of org-a", exact: true }),
   ).toBeVisible();
@@ -297,7 +295,7 @@ for (const scenario of [
       scenario.method,
     );
     await page.goto("/en/admin/audit");
-    const audit = page.getByRole("region", { name: "Audit log" });
+    const audit = page.getByRole("region", { name: "Activity history" });
     const row = audit
       .getByRole("row")
       .filter({ has: page.getByText("Task for org-a", { exact: true }) });
@@ -318,7 +316,7 @@ for (const method of [
     await workspace(page, true, { "org-a": "admin", "org-b": "owner" }, method);
     await page.goto("/en/admin/audit");
     const row = page
-      .getByRole("region", { name: "Audit log" })
+      .getByRole("region", { name: "Activity history" })
       .getByRole("row")
       .filter({ has: page.getByText("Task for org-a", { exact: true }) });
     const actor = row.getByRole("cell").nth(3);
@@ -344,7 +342,7 @@ test("switches task and audit caches with the active organization", async ({
 }) => {
   await workspace(page, true);
   await page.goto("/en/admin/audit");
-  const audit = page.getByRole("region", { name: "Audit log" });
+  const audit = page.getByRole("region", { name: "Activity history" });
   await expect(audit.getByText("task-org-a", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Organization A/ }).click();
   await page.getByRole("menuitem", { name: /Organization B/ }).click();
@@ -372,7 +370,7 @@ for (const role of ["member", "support"]) {
       page.getByText("Task for org-a", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Audit log", exact: true }),
+      page.getByRole("link", { name: "Activity", exact: true }),
     ).toHaveCount(0);
     expect(
       auditRequests.filter((url) => new URL(url).pathname.startsWith("/api/")),
@@ -387,14 +385,16 @@ test("removes audit access when switching from an admin organization to a member
   await page.goto("/en/admin/audit");
   await expect(
     page
-      .getByRole("region", { name: "Audit log" })
+      .getByRole("region", { name: "Activity history" })
       .getByText("task-org-a", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Organization A/ }).click();
   await page.getByRole("menuitem", { name: /Organization B/ }).click();
   await expect(page.getByText("Task for org-b", { exact: true })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Audit log" })).toHaveCount(0);
   await expect(
-    page.getByRole("link", { name: "Audit log", exact: true }),
+    page.getByRole("region", { name: "Activity history" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Activity", exact: true }),
   ).toHaveCount(0);
 });

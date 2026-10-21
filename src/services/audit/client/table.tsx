@@ -15,7 +15,6 @@ import { AsyncResult } from "effect/reactivity";
 import { m } from "@/paraglide/messages";
 import { useOrganizationId } from "@/services/auth/client/organization";
 import { auditLogAtom } from "./atom";
-import { krakstackAuthUrl } from "@/services/auth/client";
 
 export const OrganizationAuditLog = ({
   state,
@@ -29,7 +28,6 @@ export const OrganizationAuditLog = ({
     useAtomValue(activeAuthOrganizationAtom(auth?.baseUrl)(organizationId)),
     () => null,
   );
-  const result = useAtomValue(auditLogAtom(organizationId)(state));
   const actors: AuditActor[] = organization
     ? [
         {
@@ -37,17 +35,18 @@ export const OrganizationAuditLog = ({
           id: organization.id,
           label: organization.name,
           description: organization.id,
-          imageSrc: assetUrl(organization.logo, krakstackAuthUrl),
+          imageSrc: assetUrl(organization.logo, auth?.baseUrl),
         },
         ...organization.members.map((member): AuditActor => ({
           type: "user",
           id: member.userId,
           label: member.user.name,
-          description: member.user.email,
-          imageSrc: assetUrl(member.user.image, krakstackAuthUrl),
+          description: member.userId,
+          imageSrc: assetUrl(member.user.image, auth?.baseUrl),
         })),
       ]
     : [];
+  const result = useAtomValue(auditLogAtom(organizationId)(state));
   const page = AsyncResult.match(result, {
     onInitial: () => undefined,
     onFailure: () => undefined,
@@ -67,6 +66,10 @@ export const OrganizationAuditLog = ({
   ]);
   return (
     <AuditLogTable
+      messages={{
+        en: { title: m.audit_history_title({}, { locale: "en" }) },
+        fr: { title: m.audit_history_title({}, { locale: "fr" }) },
+      }}
       entries={page?.data ?? []}
       rowCount={page?.meta.total ?? 0}
       state={state}
