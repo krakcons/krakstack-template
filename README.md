@@ -16,7 +16,7 @@ A full-stack web application template built with TanStack Start, Effect, Drizzle
 | Tables     | TanStack Table                                   |
 | i18n       | Paraglide.js + inlang (English & French)         |
 | Linting    | Oxlint                                           |
-| Formatting | Oxfmt                                            |
+| Formatting | Bun's built-in formatter                         |
 
 ## Prerequisites
 
@@ -69,7 +69,7 @@ bun --bun run dev
 | `bun --bun run build`   | Production build                   |
 | `bun --bun run preview` | Preview production build           |
 | `bun run lint`          | Run Oxlint                         |
-| `bun run fmt`           | Run Oxfmt                          |
+| `bun fmt`               | Run Bun's built-in formatter       |
 | `bun check`             | Run TypeScript type checking       |
 
 ## OpenTelemetry and browser analytics
